@@ -4,16 +4,20 @@ Group project for the Information Systems Analysis & Design course at Ben-Gurion
 
 ## Repository structure
 
-| Folder | Stage | Main documents |
-|---|---|---|
-| `01-initiation` | Initiation | Business problem, problem statement, proposed system |
-| `02-current-state` | Current state analysis | Organization description, interviews, BPMN of existing processes |
-| `03-requirements` | Requirements analysis | Requirements document, user stories, traceability matrix |
-| `04-feasibility` | Feasibility study | Alternatives, cost-benefit analysis |
-| `05-design` | Design | Use case, class, and state diagrams |
-| `06-development` | Development | Prototype |
-| `07-testing` | Testing | Test plan |
-| `08-deployment` | Deployment and operation | Deployment plan |
+| Folder | Content |
+|---|---|
+| `part-a` | Part A |
+| `part-b` | Part B |
+| `part-c` | Part C |
+
+Each part contains:
+
+| Subfolder | Content |
+|---|---|
+| `documents` | Written documents |
+| `mcps` | MCP files and configuration |
+| `images` | Images and diagram exports |
+| `work-process-docs` | Documentation of the work process |
 
 ## Team
 
