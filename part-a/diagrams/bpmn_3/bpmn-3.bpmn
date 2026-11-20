@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="process_2" name="בתי צמיחה מי עמי" isExecutable="false">
+      <bpmn:laneSet id="process_2_laneset">
+        <bpmn:lane id="lane-office" name="מנהל לשכה">
+          <bpmn:flowNodeRef>start-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-4</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-5</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-8</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-9</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>ie-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>ie-2</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>end-1</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="lane-agro" name="צוות אגרונומים">
+          <bpmn:flowNodeRef>gw-m1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-2</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-3</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="lane-ceo" name="מנכ&quot;ל">
+          <bpmn:flowNodeRef>gw-m2</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-6</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-2</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-7</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="start-1" name="קובץ התמלוגים הוכן"/>
+      <bpmn:task id="t-1" name="העבר את הקובץ לאישור האגרונומים"/>
+      <bpmn:exclusiveGateway id="gw-m1" name=""/>
+      <bpmn:task id="t-2" name="בדוק שהמכירות בקובץ בוצעו">
+        <bpmn:property id="t-2_input" name="__targetRef_placeholder"/>
+        <bpmn:dataInputAssociation id="da-1"><bpmn:sourceRef>do-1</bpmn:sourceRef><bpmn:targetRef>t-2_input</bpmn:targetRef></bpmn:dataInputAssociation>
+      </bpmn:task>
+      <bpmn:exclusiveGateway id="gw-1" name=""/>
+      <bpmn:task id="t-3" name="החזר את הקובץ עם הערות"/>
+      <bpmn:task id="t-4" name="תקן את הקובץ לפי הערות האגרונומים">
+        <bpmn:dataOutputAssociation id="da-2"><bpmn:targetRef>do-1</bpmn:targetRef></bpmn:dataOutputAssociation>
+      </bpmn:task>
+      <bpmn:task id="t-5" name="העבר את הקובץ לאישור המנכ&quot;ל"/>
+      <bpmn:exclusiveGateway id="gw-m2" name=""/>
+      <bpmn:task id="t-6" name="בדוק את הדוח">
+        <bpmn:property id="t-6_input" name="__targetRef_placeholder"/>
+        <bpmn:dataInputAssociation id="da-3"><bpmn:sourceRef>do-1</bpmn:sourceRef><bpmn:targetRef>t-6_input</bpmn:targetRef></bpmn:dataInputAssociation>
+      </bpmn:task>
+      <bpmn:exclusiveGateway id="gw-2" name=""/>
+      <bpmn:task id="t-7" name="החזר את הדוח עם הערות"/>
+      <bpmn:task id="t-8" name="תקן את הדוח לפי הערות המנכ&quot;ל">
+        <bpmn:dataOutputAssociation id="da-4"><bpmn:targetRef>do-1</bpmn:targetRef></bpmn:dataOutputAssociation>
+      </bpmn:task>
+      <bpmn:task id="t-9" name="שלח את הדוח לספק">
+        <bpmn:property id="t-9_input" name="__targetRef_placeholder"/>
+        <bpmn:dataInputAssociation id="da-5"><bpmn:sourceRef>do-1</bpmn:sourceRef><bpmn:targetRef>t-9_input</bpmn:targetRef></bpmn:dataInputAssociation>
+      </bpmn:task>
+      <bpmn:intermediateCatchEvent id="ie-1" name="אישור הספק התקבל">
+        <bpmn:messageEventDefinition id="ie-1_def"/>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:intermediateCatchEvent id="ie-2" name="חשבונית התקבלה">
+        <bpmn:messageEventDefinition id="ie-2_def"/>
+      </bpmn:intermediateCatchEvent>
+      <bpmn:endEvent id="end-1" name="החשבונית ממתינה לאישור מס הכנסה"/>
+      <bpmn:dataObject id="do-1_obj"/>
+      <bpmn:dataObjectReference id="do-1" name="קובץ דוח התמלוגים (Excel)" dataObjectRef="do-1_obj"/>
+      <bpmn:sequenceFlow id="sf-1" sourceRef="start-1" targetRef="t-1"/>
+      <bpmn:sequenceFlow id="sf-2" sourceRef="t-1" targetRef="gw-m1"/>
+      <bpmn:sequenceFlow id="sf-3" sourceRef="gw-m1" targetRef="t-2"/>
+      <bpmn:sequenceFlow id="sf-4" sourceRef="t-2" targetRef="gw-1"/>
+      <bpmn:sequenceFlow id="sf-5" sourceRef="gw-1" targetRef="t-3" name="לא"/>
+      <bpmn:sequenceFlow id="sf-6" sourceRef="t-3" targetRef="t-4"/>
+      <bpmn:sequenceFlow id="sf-7" sourceRef="t-4" targetRef="gw-m1"/>
+      <bpmn:sequenceFlow id="sf-8" sourceRef="gw-1" targetRef="t-5" name="כן"/>
+      <bpmn:sequenceFlow id="sf-9" sourceRef="t-5" targetRef="gw-m2"/>
+      <bpmn:sequenceFlow id="sf-10" sourceRef="gw-m2" targetRef="t-6"/>
+      <bpmn:sequenceFlow id="sf-11" sourceRef="t-6" targetRef="gw-2"/>
+      <bpmn:sequenceFlow id="sf-12" sourceRef="gw-2" targetRef="t-7" name="לא"/>
+      <bpmn:sequenceFlow id="sf-13" sourceRef="t-7" targetRef="t-8"/>
+      <bpmn:sequenceFlow id="sf-14" sourceRef="t-8" targetRef="gw-m2"/>
+      <bpmn:sequenceFlow id="sf-15" sourceRef="gw-2" targetRef="t-9" name="כן"/>
+      <bpmn:sequenceFlow id="sf-16" sourceRef="t-9" targetRef="ie-1"/>
+      <bpmn:sequenceFlow id="sf-17" sourceRef="ie-1" targetRef="ie-2"/>
+      <bpmn:sequenceFlow id="sf-18" sourceRef="ie-2" targetRef="end-1"/>
+  </bpmn:process>
+  <bpmn:collaboration id="collab_1">
+    <bpmn:participant id="pool-supplier" name="ספק הזן (חו&quot;ל)"/>
+    <bpmn:participant id="pool-org" name="בתי צמיחה מי עמי" processRef="process_2"/>
+    <bpmn:messageFlow id="mf-1" sourceRef="t-9" targetRef="pool-supplier" name="דוח תמלוגים"/>
+    <bpmn:messageFlow id="mf-2" sourceRef="pool-supplier" targetRef="ie-1" name="אישור הדוח"/>
+    <bpmn:messageFlow id="mf-3" sourceRef="pool-supplier" targetRef="ie-2" name="חשבונית"/>
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="collab_1">
+      <bpmndi:BPMNShape id="pool-supplier_di" bpmnElement="pool-supplier" isHorizontal="true">
+        <dc:Bounds x="20" y="72" width="2810" height="96"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pool-org_di" bpmnElement="pool-org" isHorizontal="true">
+        <dc:Bounds x="20" y="184" width="2810" height="608"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane-office_di" bpmnElement="lane-office" isHorizontal="true">
+        <dc:Bounds x="50" y="184" width="2780" height="272"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane-agro_di" bpmnElement="lane-agro" isHorizontal="true">
+        <dc:Bounds x="50" y="456" width="2780" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane-ceo_di" bpmnElement="lane-ceo" isHorizontal="true">
+        <dc:Bounds x="50" y="624" width="2780" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start-1_di" bpmnElement="start-1">
+        <dc:Bounds x="126" y="274" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-1_di" bpmnElement="t-1">
+        <dc:Bounds x="286" y="260" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-4_di" bpmnElement="t-4">
+        <dc:Bounds x="1134" y="208" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-5_di" bpmnElement="t-5">
+        <dc:Bounds x="1134" y="312" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-9_di" bpmnElement="t-9">
+        <dc:Bounds x="1982" y="208" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-8_di" bpmnElement="t-8">
+        <dc:Bounds x="1982" y="312" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ie-1_di" bpmnElement="ie-1">
+        <dc:Bounds x="2246" y="274" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ie-2_di" bpmnElement="ie-2">
+        <dc:Bounds x="2458" y="274" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end-1_di" bpmnElement="end-1">
+        <dc:Bounds x="2670" y="274" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-m1_di" bpmnElement="gw-m1">
+        <dc:Bounds x="544" y="488" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-2_di" bpmnElement="t-2">
+        <dc:Bounds x="710" y="480" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-1_di" bpmnElement="gw-1">
+        <dc:Bounds x="968" y="488" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-3_di" bpmnElement="t-3">
+        <dc:Bounds x="1134" y="480" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-m2_di" bpmnElement="gw-m2">
+        <dc:Bounds x="1392" y="656" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-6_di" bpmnElement="t-6">
+        <dc:Bounds x="1558" y="648" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-2_di" bpmnElement="gw-2">
+        <dc:Bounds x="1816" y="656" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-7_di" bpmnElement="t-7">
+        <dc:Bounds x="1982" y="648" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="do-1_di" bpmnElement="do-1">
+        <dc:Bounds x="1821" y="406" width="36" height="44"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf-1_di" bpmnElement="sf-1">
+        <di:waypoint x="162" y="292"/>
+        <di:waypoint x="286" y="292"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-2_di" bpmnElement="sf-2">
+        <di:waypoint x="356" y="324"/>
+        <di:waypoint x="356" y="462"/>
+        <di:waypoint x="561" y="462"/>
+        <di:waypoint x="561" y="495"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-3_di" bpmnElement="sf-3">
+        <di:waypoint x="592" y="512"/>
+        <di:waypoint x="710" y="512"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-4_di" bpmnElement="sf-4">
+        <di:waypoint x="850" y="512"/>
+        <di:waypoint x="968" y="512"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-5_di" bpmnElement="sf-5">
+        <di:waypoint x="1009" y="519"/>
+        <di:waypoint x="1108" y="519"/>
+        <di:waypoint x="1108" y="512"/>
+        <di:waypoint x="1134" y="512"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-6_di" bpmnElement="sf-6">
+        <di:waypoint x="1204" y="480"/>
+        <di:waypoint x="1204" y="390"/>
+        <di:waypoint x="1290" y="390"/>
+        <di:waypoint x="1290" y="298"/>
+        <di:waypoint x="1204" y="298"/>
+        <di:waypoint x="1204" y="272"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-7_di" bpmnElement="sf-7">
+        <di:waypoint x="1190" y="272"/>
+        <di:waypoint x="1190" y="298"/>
+        <di:waypoint x="575" y="298"/>
+        <di:waypoint x="575" y="495"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-8_di" bpmnElement="sf-8">
+        <di:waypoint x="1009" y="505"/>
+        <di:waypoint x="1118" y="505"/>
+        <di:waypoint x="1118" y="402"/>
+        <di:waypoint x="1197" y="402"/>
+        <di:waypoint x="1197" y="376"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-9_di" bpmnElement="sf-9">
+        <di:waypoint x="1211" y="376"/>
+        <di:waypoint x="1211" y="466"/>
+        <di:waypoint x="1409" y="466"/>
+        <di:waypoint x="1409" y="663"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-10_di" bpmnElement="sf-10">
+        <di:waypoint x="1440" y="680"/>
+        <di:waypoint x="1558" y="680"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-11_di" bpmnElement="sf-11">
+        <di:waypoint x="1698" y="680"/>
+        <di:waypoint x="1816" y="680"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-12_di" bpmnElement="sf-12">
+        <di:waypoint x="1857" y="687"/>
+        <di:waypoint x="1956" y="687"/>
+        <di:waypoint x="1956" y="680"/>
+        <di:waypoint x="1982" y="680"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-13_di" bpmnElement="sf-13">
+        <di:waypoint x="2052" y="648"/>
+        <di:waypoint x="2052" y="402"/>
+        <di:waypoint x="2066" y="402"/>
+        <di:waypoint x="2066" y="376"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-14_di" bpmnElement="sf-14">
+        <di:waypoint x="2038" y="376"/>
+        <di:waypoint x="2038" y="600"/>
+        <di:waypoint x="1423" y="600"/>
+        <di:waypoint x="1423" y="663"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-15_di" bpmnElement="sf-15">
+        <di:waypoint x="1857" y="673"/>
+        <di:waypoint x="1966" y="673"/>
+        <di:waypoint x="1966" y="298"/>
+        <di:waypoint x="2059" y="298"/>
+        <di:waypoint x="2059" y="272"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-16_di" bpmnElement="sf-16">
+        <di:waypoint x="2122" y="240"/>
+        <di:waypoint x="2220" y="240"/>
+        <di:waypoint x="2220" y="292"/>
+        <di:waypoint x="2246" y="292"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-17_di" bpmnElement="sf-17">
+        <di:waypoint x="2282" y="292"/>
+        <di:waypoint x="2458" y="292"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-18_di" bpmnElement="sf-18">
+        <di:waypoint x="2494" y="292"/>
+        <di:waypoint x="2670" y="292"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="mf-1_di" bpmnElement="mf-1">
+        <di:waypoint x="2052" y="208"/>
+        <di:waypoint x="2052" y="168"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="mf-2_di" bpmnElement="mf-2">
+        <di:waypoint x="2264" y="168"/>
+        <di:waypoint x="2264" y="274"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="mf-3_di" bpmnElement="mf-3">
+        <di:waypoint x="2476" y="168"/>
+        <di:waypoint x="2476" y="274"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-1_di" bpmnElement="da-1">
+        <di:waypoint x="1821" y="421"/>
+        <di:waypoint x="780" y="421"/>
+        <di:waypoint x="780" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-2_di" bpmnElement="da-2">
+        <di:waypoint x="1218" y="272"/>
+        <di:waypoint x="1218" y="292"/>
+        <di:waypoint x="1827" y="292"/>
+        <di:waypoint x="1827" y="380"/>
+        <di:waypoint x="1827" y="406"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-3_di" bpmnElement="da-3">
+        <di:waypoint x="1821" y="435"/>
+        <di:waypoint x="1628" y="435"/>
+        <di:waypoint x="1628" y="648"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-4_di" bpmnElement="da-4">
+        <di:waypoint x="2052" y="376"/>
+        <di:waypoint x="2052" y="390"/>
+        <di:waypoint x="1839" y="390"/>
+        <di:waypoint x="1839" y="380"/>
+        <di:waypoint x="1839" y="406"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-5_di" bpmnElement="da-5">
+        <di:waypoint x="1851" y="406"/>
+        <di:waypoint x="1851" y="390"/>
+        <di:waypoint x="1851" y="292"/>
+        <di:waypoint x="2045" y="292"/>
+        <di:waypoint x="2045" y="272"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>תרשים 1: הבדיקה היומית של דיווחי הייצור (C2–C5), מצב קיים (BPMN 1.0)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; background: #eef2f6;
+      font-family: 'Noto Sans Hebrew', -apple-system, BlinkMacSystemFont, sans-serif;
+      direction: rtl; }
+    .header-bar { padding: 14px 20px; background: linear-gradient(135deg, #37474f, #546e7a);
+      color: #fff; display: flex; align-items: baseline; gap: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .header-bar h1 { margin: 0; font-size: 18px; font-weight: 600; }
+    .header-bar .en { font-size: 13px; opacity: 0.8; font-weight: 400; }
+    .header-bar .badge { margin-inline-start: auto; background: rgba(255,255,255,0.15);
+      padding: 3px 10px; border-radius: 10px; font-size: 11px; letter-spacing: 0.5px; }
+    .stats-bar { padding: 8px 20px; background: #ffffff; font-size: 12px; color: #546e7a;
+      border-bottom: 1px solid #cfd8dc; }
+    .stats-bar span { margin-inline-end: 16px; }
+    .svg-wrapper { overflow: auto; background: #f8fafc; padding: 20px; min-height: calc(100vh - 120px); }
+    svg { display: block; background: #f8fafc; }
+    .bpmn-element { cursor: pointer; }
+    /* Flow hover: a wide invisible hit-area makes thin lines easy to grab; the
+       line then brightens + thickens (and is lifted to the front by JS) so it
+       can be tracked unbroken through crossings. Dash patterns are preserved. */
+    .bpmn-flow { cursor: pointer; }
+    .bpmn-flow-hit { stroke: transparent; fill: none; stroke-width: 16; pointer-events: stroke; }
+    .bpmn-flow-line { transition: stroke 0.05s, stroke-width 0.05s; }
+    .bpmn-flow.bpmn-hl .bpmn-flow-line { stroke: #e6007e !important; stroke-width: 3.4 !important; }
+    .bpmn-tooltip { display: none; position: fixed; background: #1a1a2e; color: #fff;
+      padding: 9px 13px; border-radius: 6px; font-size: 12px; max-width: 280px;
+      z-index: 500; direction: rtl; pointer-events: none; line-height: 1.5;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .bpmn-tooltip strong { color: #ffd54f; }
+    .vp-export-btn { position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+      background: #1e40af; color: #fff; border: none; border-radius: 6px;
+      padding: 9px 16px; font-size: 13px; cursor: pointer;
+      font-family: 'Noto Sans Hebrew', sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .vp-export-btn:hover { background: #1e3a8a; }
+    .assumptions-btn { position: fixed; top: 12px; left: 12px; z-index: 1000;
+      background: #37474f; color: #fff; border: none; border-radius: 6px;
+      padding: 7px 13px; font-size: 12px; cursor: pointer;
+      font-family: 'Noto Sans Hebrew', sans-serif; }
+    .assumptions-panel { position: fixed; top: 54px; left: 12px; z-index: 1000;
+      background: #ffffff; border: 1px solid #b0bec5; border-radius: 8px; padding: 14px;
+      max-width: 340px; max-height: 70vh; overflow-y: auto; direction: rtl;
+      font-family: 'Noto Sans Hebrew', sans-serif; font-size: 13px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18); display: none; }
+    .assumptions-panel h4 { margin: 0 0 10px; color: #37474f; }
+    .assumptions-panel ul { margin: 4px 0 10px; padding-inline-start: 18px; }
+
+    .pp-open-btn { position: fixed; bottom: 64px; left: 20px; z-index: 1000;
+      background: #37474f; color: #fff; border: none; border-radius: 6px;
+      padding: 9px 16px; font-size: 13px; cursor: pointer;
+      font-family: 'Noto Sans Hebrew', sans-serif; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    .pp-open-btn:hover { background: #263238; }
+    .pp-overlay { display: none; position: fixed; inset: 0; z-index: 2000; overflow: auto;
+      background: #cfd8dc; direction: rtl; font-family: 'Noto Sans Hebrew', sans-serif; }
+    .pp-overlay.pp-show { display: block; }
+    .pp-toolbar { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap;
+      align-items: center; gap: 10px; padding: 10px 20px; background: #37474f; color: #fff; }
+    .pp-toolbar button { background: #fff; color: #263238; border: none; border-radius: 5px;
+      padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .pp-toolbar .pp-hint { font-size: 12px; opacity: 0.85; margin-inline-start: auto; }
+    .pp-pages { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 20px; }
+    .pp-page { width: min(1100px, 100%); }
+    .pp-page img { display: block; width: 100%; background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .pp-page a { display: inline-block; margin-top: 6px; font-size: 12px; color: #1e40af; }
+    .pp-status { padding: 40px; text-align: center; color: #37474f; }
+    @page { size: A4 landscape; margin: 10mm; }
+    @media print {
+      body.pp-printing > *:not(.pp-overlay) { display: none !important; }
+      body.pp-printing .pp-overlay { position: static; display: block; overflow: visible; background: #fff; }
+      body.pp-printing .pp-toolbar { display: none; }
+      body.pp-printing .pp-pages { display: block; padding: 0; }
+      body.pp-printing .pp-page { width: 100%; break-after: page; }
+      body.pp-printing .pp-page:last-child { break-after: auto; }
+      body.pp-printing .pp-page img { box-shadow: none; }
+      body.pp-printing .pp-page a { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <h1>תרשים 1: הבדיקה היומית של דיווחי הייצור (C2–C5), מצב קיים</h1>
+    <span class="en">Daily check of production reports (C2-C5), AS-IS</span>
+    <span class="badge">BPMN 1.0</span>
+  </div>
+  <div class="stats-bar">
+    <span>1 מאגרים</span>
+    <span>2 נתיבים</span>
+    <span>9 משימות</span>
+    <span>6 שערים</span>
+    <span>2 אירועים</span>
+    <span>2 פריטי נתונים</span>
+    <span>19 זרימות</span>
+  </div>
+  <div class="svg-wrapper">
+    <svg width="2870" height="548"
+         viewBox="0 0 2870 548"
+         xmlns="http://www.w3.org/2000/svg">
+      
+    <defs>
+      <pattern id="dot-grid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+        <circle cx="1" cy="1" r="0.8" fill="#cbd5e1"/>
+      </pattern>
+      <!-- markerUnits=userSpaceOnUse: arrowheads keep ONE size regardless of each
+           flow's stroke-width (default strokeWidth units made seq arrows ~45%
+           bigger than data-association arrows) -->
+      <marker id="arrow-seq" viewBox="0 0 10 10" refX="10" refY="5"
+              markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#455a64"/>
+      </marker>
+      <marker id="msg-start" viewBox="-10 -10 20 20" refX="0" refY="0"
+              markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+        <circle cx="0" cy="0" r="4" fill="#ffffff" stroke="#37474f" stroke-width="1.2"/>
+      </marker>
+      <!-- BPMN 2.0.2: message flow "open arrowhead line end" (9.4); data association a
+           dotted line with a line arrowhead (8.4.1). Both open, stroke only. -->
+      <marker id="msg-end" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+        <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#37474f" stroke-width="1.2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+      <marker id="arrow-data" viewBox="0 0 10 10" refX="9" refY="5"
+              markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+        <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#7986cb" stroke-width="1.4"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+      <rect x="0" y="0" width="2870" height="548" fill="#f8fafc"/>
+    <rect x="0" y="0" width="2870" height="548" fill="url(#dot-grid)"/>
+      
+    <!-- pool: pool-org -->
+    <g class="bpmn-pool" data-pool="pool-org">
+      <rect x="20" y="72" width="2810" height="440"
+            fill="#ffffff" stroke="#455a64" stroke-width="1.5"/>
+      <rect x="20" y="72" width="30" height="440"
+            fill="#37474f" stroke="#455a64" stroke-width="1.5"/>
+      <text x="35" y="292" text-anchor="middle"
+            dominant-baseline="middle"
+            transform="rotate(-90, 35, 292)"
+            fill="#ffffff" font-size="12" font-weight="600"
+            direction="rtl">בתי צמיחה מי עמי</text>
+      <line x1="50" y1="72" x2="50" y2="512"
+            stroke="#455a64" stroke-width="1"/>
+    </g>
+      
+    <g class="bpmn-lane" data-lane="lane-tpi">
+      <rect x="74" y="72" width="2756" height="272"
+            fill="#fafafa" fill-opacity="0.6" stroke="none"/>
+      <rect x="50" y="72" width="24" height="272"
+            fill="#546e7a" stroke="#455a64" stroke-width="1"/>
+      <text x="62" y="208" text-anchor="middle"
+            dominant-baseline="middle"
+            transform="rotate(-90, 62, 208)"
+            fill="#ffffff" font-size="11" font-weight="500"
+            direction="rtl">אחראי תפ&quot;י</text>
+      
+    </g>
+
+    <g class="bpmn-lane" data-lane="lane-priority">
+      <rect x="74" y="344" width="2756" height="168"
+            fill="#fafafa" fill-opacity="0.6" stroke="none"/>
+      <rect x="50" y="344" width="24" height="168"
+            fill="#546e7a" stroke="#455a64" stroke-width="1"/>
+      <text x="62" y="428" text-anchor="middle"
+            dominant-baseline="middle"
+            transform="rotate(-90, 62, 428)"
+            fill="#ffffff" font-size="11" font-weight="500"
+            direction="rtl">Priority</text>
+      <line x1="50" y1="344" x2="2830" y2="344"
+              stroke="#90a4ae" stroke-width="1" stroke-dasharray="4 3"/>
+    </g>
+      
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-1">
+      <path class="bpmn-flow-hit" d="M 162.0 180.0 L 260.0 180.0 L 260.0 128.0 L 286.0 128.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 162.0 180.0 L 260.0 180.0 L 260.0 128.0 L 286.0 128.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-2">
+      <path class="bpmn-flow-hit" d="M 356.0 160.0 L 356.0 187.0 L 270.0 187.0 L 270.0 342.0 L 349.0 342.0 L 349.0 368.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 356.0 160.0 L 356.0 187.0 L 270.0 187.0 L 270.0 342.0 L 349.0 342.0 L 349.0 368.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-3">
+      <path class="bpmn-flow-hit" d="M 363.0 368.0 L 363.0 290.0 L 356.0 290.0 L 356.0 264.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 363.0 368.0 L 363.0 290.0 L 356.0 290.0 L 356.0 264.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-4">
+      <path class="bpmn-flow-hit" d="M 426.0 232.0 L 518.0 232.0 L 518.0 180.0 L 544.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 426.0 232.0 L 518.0 232.0 L 518.0 180.0 L 544.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-5">
+      <path class="bpmn-flow-hit" d="M 568.0 204.0 L 568.0 342.0 L 773.0 342.0 L 773.0 368.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 568.0 204.0 L 568.0 342.0 L 773.0 342.0 L 773.0 368.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    <g class="bpmn-flow-label">
+      <rect x="535" y="234.4" width="24" height="14"
+            rx="3" ry="3" fill="#ffffff" fill-opacity="0.92" stroke="none"/>
+      <text x="547" y="241.4" text-anchor="middle" dominant-baseline="middle"
+            font-size="11" fill="#263238" direction="rtl">כן</text>
+    </g>
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-6">
+      <path class="bpmn-flow-hit" d="M 592.0 180.0 L 968.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 592.0 180.0 L 968.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      <line x1="606" y1="174"
+                 x2="606" y2="186"
+                 stroke="#455a64" stroke-width="1.5" stroke-linecap="round"/>
+      
+    <g class="bpmn-flow-label">
+      <rect x="692.8" y="156.75" width="24" height="14"
+            rx="3" ry="3" fill="#ffffff" fill-opacity="0.92" stroke="none"/>
+      <text x="704.8" y="163.75" text-anchor="middle" dominant-baseline="middle"
+            font-size="11" fill="#263238" direction="rtl">לא</text>
+    </g>
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-7">
+      <path class="bpmn-flow-hit" d="M 787.0 368.0 L 787.0 230.0 L 992.0 230.0 L 992.0 204.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 787.0 368.0 L 787.0 230.0 L 992.0 230.0 L 992.0 204.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-8">
+      <path class="bpmn-flow-hit" d="M 1016.0 180.0 L 1180.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1016.0 180.0 L 1180.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-9">
+      <path class="bpmn-flow-hit" d="M 1228.0 180.0 L 1346.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1228.0 180.0 L 1346.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-10">
+      <path class="bpmn-flow-hit" d="M 1486.0 180.0 L 1532.0 180.0 L 1532.0 128.0 L 1558.0 128.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1486.0 180.0 L 1532.0 180.0 L 1532.0 128.0 L 1558.0 128.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-11">
+      <path class="bpmn-flow-hit" d="M 1628.0 160.0 L 1628.0 187.0 L 1542.0 187.0 L 1542.0 342.0 L 1621.0 342.0 L 1621.0 368.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1628.0 160.0 L 1628.0 187.0 L 1542.0 187.0 L 1542.0 342.0 L 1621.0 342.0 L 1621.0 368.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-12">
+      <path class="bpmn-flow-hit" d="M 1635.0 368.0 L 1635.0 290.0 L 1628.0 290.0 L 1628.0 264.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1635.0 368.0 L 1635.0 290.0 L 1628.0 290.0 L 1628.0 264.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-13">
+      <path class="bpmn-flow-hit" d="M 1698.0 232.0 L 1790.0 232.0 L 1790.0 180.0 L 1816.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1698.0 232.0 L 1790.0 232.0 L 1790.0 180.0 L 1816.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-14">
+      <path class="bpmn-flow-hit" d="M 1857.0 173.0 L 1956.0 173.0 L 1956.0 180.0 L 1982.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1857.0 173.0 L 1956.0 173.0 L 1956.0 180.0 L 1982.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    <g class="bpmn-flow-label">
+      <rect x="1874.7" y="188.25" width="24" height="14"
+            rx="3" ry="3" fill="#ffffff" fill-opacity="0.92" stroke="none"/>
+      <text x="1886.7" y="195.25" text-anchor="middle" dominant-baseline="middle"
+            font-size="11" fill="#263238" direction="rtl">כן</text>
+    </g>
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-15">
+      <path class="bpmn-flow-hit" d="M 1857.0 187.0 L 1966.0 187.0 L 1966.0 134.0 L 2214.0 134.0 L 2214.0 173.0 L 2247.0 173.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 1857.0 187.0 L 1966.0 187.0 L 1966.0 134.0 L 2214.0 134.0 L 2214.0 173.0 L 2247.0 173.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      <line x1="1871" y1="181"
+                 x2="1871" y2="193"
+                 stroke="#455a64" stroke-width="1.5" stroke-linecap="round"/>
+      
+    <g class="bpmn-flow-label">
+      <rect x="1921.3" y="190.25" width="24" height="14"
+            rx="3" ry="3" fill="#ffffff" fill-opacity="0.92" stroke="none"/>
+      <text x="1933.3" y="197.25" text-anchor="middle" dominant-baseline="middle"
+            font-size="11" fill="#263238" direction="rtl">לא</text>
+    </g>
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-16">
+      <path class="bpmn-flow-hit" d="M 2122.0 180.0 L 2214.0 180.0 L 2214.0 187.0 L 2247.0 187.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 2122.0 180.0 L 2214.0 180.0 L 2214.0 187.0 L 2247.0 187.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-17">
+      <path class="bpmn-flow-hit" d="M 2288.0 180.0 L 2452.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 2288.0 180.0 L 2452.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-18">
+      <path class="bpmn-flow-hit" d="M 2476.0 204.0 L 2476.0 280.0 L 1204.0 280.0 L 1204.0 204.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 2476.0 204.0 L 2476.0 280.0 L 1204.0 280.0 L 1204.0 204.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    <g class="bpmn-flow-label">
+      <rect x="2443" y="215.8" width="24" height="14"
+            rx="3" ry="3" fill="#ffffff" fill-opacity="0.92" stroke="none"/>
+      <text x="2455" y="222.8" text-anchor="middle" dominant-baseline="middle"
+            font-size="11" fill="#263238" direction="rtl">כן</text>
+    </g>
+    </g>
+
+    <g class="bpmn-flow bpmn-sequence" data-flow="sf-19">
+      <path class="bpmn-flow-hit" d="M 2500.0 180.0 L 2670.0 180.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 2500.0 180.0 L 2670.0 180.0" fill="none" stroke="#455a64" stroke-width="1.6"
+            marker-end="url(#arrow-seq)"/>
+      
+      
+    <g class="bpmn-flow-label">
+      <rect x="2539" y="156.75" width="24" height="14"
+            rx="3" ry="3" fill="#ffffff" fill-opacity="0.92" stroke="none"/>
+      <text x="2551" y="163.75" text-anchor="middle" dominant-baseline="middle"
+            font-size="11" fill="#263238" direction="rtl">לא</text>
+    </g>
+    </g>
+      
+      
+    <g class="bpmn-flow bpmn-data-assoc" data-flow="da-1" data-dir="read">
+      <path class="bpmn-flow-hit" d="M 907.3 462.0 L 907.3 446.0 L 907.3 444.0 L 356.0 444.0 L 356.0 432.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 907.3 462.0 L 907.3 446.0 L 907.3 444.0 L 356.0 444.0 L 356.0 432.0" fill="none" stroke="#7986cb" stroke-width="1.4"
+            stroke-dasharray="0.5 3.2" stroke-linecap="round" marker-end="url(#arrow-data)"/>
+    </g>
+
+    <g class="bpmn-flow bpmn-data-assoc" data-flow="da-2" data-dir="read">
+      <path class="bpmn-flow-hit" d="M 921.3 462.0 L 921.3 446.0 L 921.3 436.0 L 866.0 436.0 L 866.0 458.0 L 814.0 458.0 L 814.0 451.0 L 787.0 451.0 L 787.0 432.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 921.3 462.0 L 921.3 446.0 L 921.3 436.0 L 866.0 436.0 L 866.0 458.0 L 814.0 458.0 L 814.0 451.0 L 787.0 451.0 L 787.0 432.0" fill="none" stroke="#7986cb" stroke-width="1.4"
+            stroke-dasharray="0.5 3.2" stroke-linecap="round" marker-end="url(#arrow-data)"/>
+    </g>
+
+    <g class="bpmn-flow bpmn-data-assoc" data-flow="da-3" data-dir="write">
+      <path class="bpmn-flow-hit" d="M 773.0 432.0 L 773.0 449.8 L 780.0 449.8 L 780.0 462.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 773.0 432.0 L 773.0 449.8 L 780.0 449.8 L 780.0 462.0" fill="none" stroke="#7986cb" stroke-width="1.4"
+            stroke-dasharray="0.5 3.2" stroke-linecap="round" marker-end="url(#arrow-data)"/>
+    </g>
+
+    <g class="bpmn-flow bpmn-data-assoc" data-flow="da-4" data-dir="read">
+      <path class="bpmn-flow-hit" d="M 935.3 462.0 L 935.3 446.0 L 935.3 448.0 L 1628.0 448.0 L 1628.0 432.0" fill="none"/>
+      <path class="bpmn-flow-line" d="M 935.3 462.0 L 935.3 446.0 L 935.3 448.0 L 1628.0 448.0 L 1628.0 432.0" fill="none" stroke="#7986cb" stroke-width="1.4"
+            stroke-dasharray="0.5 3.2" stroke-linecap="round" marker-end="url(#arrow-data)"/>
+    </g>
+      
+    <g class="bpmn-element bpmn-event" id="start-1" data-kind="event" data-event="start" data-trigger="timer">
+      <circle cx="144" cy="180" r="18" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+      <g class="bpmn-event-marker" data-marker="timer" fill="none" stroke="#2e7d32" stroke-width="1.3" stroke-linecap="round">
+        <circle cx="144" cy="180" r="9.5"/><line x1="144" y1="173" x2="144" y2="171" stroke-width="1.1" stroke-linecap="butt"/><line x1="151" y1="180" x2="153" y2="180" stroke-width="1.1" stroke-linecap="butt"/><line x1="144" y1="187" x2="144" y2="189" stroke-width="1.1" stroke-linecap="butt"/><line x1="137" y1="180" x2="135" y2="180" stroke-width="1.1" stroke-linecap="butt"/>
+        <line x1="144" y1="180" x2="144" y2="174"/>
+        <line x1="144" y1="180" x2="148.5" y2="180"/>
+      </g>
+      <text text-anchor="middle" font-size="11" fill="#37474f" direction="rtl"
+             font-weight="500"><tspan x="144" y="212">יום עבודה התחיל</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-1" data-kind="task">
+      <rect x="286" y="96" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="356" y="114">היכנס למסך</tspan><tspan x="356" y="128">&quot;פירוט דיווח</tspan><tspan x="356" y="142">ייצור&quot; וסנן…</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-3" data-kind="task">
+      <rect x="286" y="200" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="356" y="225">סנן לפי פק&quot;ע,</tspan><tspan x="356" y="239">פעולה או זן</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-gateway" id="gw-1" data-kind="gateway" data-gw="XOR">
+      <text text-anchor="middle" font-size="11" fill="#37474f" direction="rtl"
+             font-weight="500"><tspan x="568" y="146">צריך ייצוא לאקסל?</tspan></text>
+      <rect x="551" y="163" width="34" height="34"
+            fill="#fff8e1" stroke="#f9a825" stroke-width="2"
+            transform="rotate(45, 568, 180)"/>
+      
+      <line x1="560" y1="172" x2="576" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+      <line x1="576" y1="172" x2="560" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g class="bpmn-element bpmn-gateway" id="gw-2" data-kind="gateway" data-gw="XOR">
+      
+      <rect x="975" y="163" width="34" height="34"
+            fill="#fff8e1" stroke="#f9a825" stroke-width="2"
+            transform="rotate(45, 992, 180)"/>
+      
+      <line x1="984" y1="172" x2="1000" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+      <line x1="1000" y1="172" x2="984" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g class="bpmn-element bpmn-gateway" id="gw-3" data-kind="gateway" data-gw="XOR">
+      
+      <rect x="1187" y="163" width="34" height="34"
+            fill="#fff8e1" stroke="#f9a825" stroke-width="2"
+            transform="rotate(45, 1204, 180)"/>
+      
+      <line x1="1196" y1="172" x2="1212" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+      <line x1="1212" y1="172" x2="1196" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-5" data-kind="task">
+      <rect x="1346" y="148" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="1416" y="166">השווה את הכמות</tspan><tspan x="1416" y="180">שדווחה לכמות</tspan><tspan x="1416" y="194">בפק&quot;ע</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-6" data-kind="task">
+      <rect x="1558" y="96" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="1628" y="128">היכנס לפק&quot;ע</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-8" data-kind="task">
+      <rect x="1558" y="200" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="1628" y="218">בדוק את סדר</tspan><tspan x="1628" y="232">הפעולות ואת</tspan><tspan x="1628" y="246">הכמות</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-gateway" id="gw-4" data-kind="gateway" data-gw="XOR">
+      <text text-anchor="middle" font-size="11" fill="#37474f" direction="rtl"
+             font-weight="500"><tspan x="1840" y="146">יש סטייה או שאלה?</tspan></text>
+      <rect x="1823" y="163" width="34" height="34"
+            fill="#fff8e1" stroke="#f9a825" stroke-width="2"
+            transform="rotate(45, 1840, 180)"/>
+      
+      <line x1="1832" y1="172" x2="1848" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+      <line x1="1848" y1="172" x2="1832" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-9" data-kind="task">
+      <rect x="1982" y="148" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="2052" y="173">העבר את הסטייה</tspan><tspan x="2052" y="187">לטיפול (תרשים 2)</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-gateway" id="gw-5" data-kind="gateway" data-gw="XOR">
+      
+      <rect x="2247" y="163" width="34" height="34"
+            fill="#fff8e1" stroke="#f9a825" stroke-width="2"
+            transform="rotate(45, 2264, 180)"/>
+      
+      <line x1="2256" y1="172" x2="2272" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+      <line x1="2272" y1="172" x2="2256" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g class="bpmn-element bpmn-gateway" id="gw-6" data-kind="gateway" data-gw="XOR">
+      <text text-anchor="middle" font-size="11" fill="#37474f" direction="rtl"
+             font-weight="500"><tspan x="2476" y="146">נותרו פק&quot;עות לבדיקה?</tspan></text>
+      <rect x="2459" y="163" width="34" height="34"
+            fill="#fff8e1" stroke="#f9a825" stroke-width="2"
+            transform="rotate(45, 2476, 180)"/>
+      
+      <line x1="2468" y1="172" x2="2484" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+      <line x1="2484" y1="172" x2="2468" y2="188"
+            stroke="#e65100" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g class="bpmn-element bpmn-event" id="end-1" data-kind="event" data-event="end">
+      <circle cx="2688" cy="180" r="18" fill="#ffebee" stroke="#c62828" stroke-width="3.5"/>
+      
+      <text text-anchor="middle" font-size="11" fill="#37474f" direction="rtl"
+             font-weight="500"><tspan x="2688" y="212">דיווחי אתמול נבדקו</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-2" data-kind="task">
+      <rect x="286" y="368" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="356" y="393">הצג את דיווחי</tspan><tspan x="356" y="407">אתמול</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-4" data-kind="task">
+      <rect x="710" y="368" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="780" y="393">ייצא את הרשימה</tspan><tspan x="780" y="407">לאקסל</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-task" id="t-7" data-kind="task">
+      <rect x="1558" y="368" width="140" height="64"
+            rx="8" ry="8" fill="#ffffff" stroke="#546e7a" stroke-width="1.5"/>
+      <text text-anchor="middle" dominant-baseline="middle"
+            font-size="11.5" font-weight="500"
+            fill="#1a1a2e" direction="rtl"><tspan x="1628" y="393">הצג את הפעולות</tspan><tspan x="1628" y="407">שדווחו בפק&quot;ע</tspan></text>
+    </g>
+
+    <g class="bpmn-element bpmn-data-store" id="ds-1" data-kind="dataStore">
+      <path d="M 893.3333333333334 468 L 893.3333333333334 500
+               A 28 6 0 0 0 949.3333333333334 500
+               L 949.3333333333334 468
+               A 28 6 0 0 0 893.3333333333334 468 Z"
+            fill="#ffffff" stroke="#2e7d32" stroke-width="1.4"/>
+      <path d="M 893.3333333333334 468
+               A 28 6 0 0 0 949.3333333333334 468"
+            fill="none" stroke="#2e7d32" stroke-width="1.4"/>
+      <text x="921.3333333333334" y="520" text-anchor="middle"
+            font-size="11" fill="#263238"
+            direction="rtl">Priority: דיווחי ייצור ופק&quot;עות</text>
+    </g>
+
+    <g class="bpmn-element bpmn-data-object" id="do-1" data-kind="dataObject">
+      <path d="M 762 462 L 790 462 L 798 470 L 798 506 L 762 506 Z" fill="#ffffff" stroke="#1565c0" stroke-width="1.3"/>
+      <path d="M 790 462 L 790 470 L 798 470" fill="none" stroke="#1565c0" stroke-width="1.3"/>
+      <text text-anchor="middle" font-size="11" fill="#263238"
+            direction="rtl"><tspan x="780" y="518">קובץ Excel של</tspan><tspan x="780" y="530">הדיווחים</tspan></text>
+    </g>
+    </svg>
+  </div>
+  <div id="bpmn-tooltip" class="bpmn-tooltip"></div>
+  
+    <button class="assumptions-btn" onclick="toggleAssumptions()">ℹ️ הנחות ושאלות</button>
+    <div id="assumptions-panel" class="assumptions-panel">
+      <h4>הנחות ושאלות פתוחות</h4>
+      <strong>הנחות:</strong><ul><li>הבדיקה מתחילה בתחילת יום העבודה (S4 אומר &apos;כל יום, על אתמול&apos;, לא שעה)</li><li>Priority מופיעה כ-lane של מערכת: מבצעת רק הצגה וייצוא</li><li>הסטייה מועברת לטיפול והבדיקה ממשיכה לפק&quot;ע הבאה, בלי לחכות לבירור (הבירור נמשך עד ימים, S5)</li></ul>
+      <strong>שאלות פתוחות:</strong><ul><li>האם נטלי מעבירה כל סטייה מיד, או מרכזת את כולן בסוף הבדיקה?</li></ul>
+    </div>
+  <button class="vp-export-btn" onclick="exportBPMN()">Download .bpmn (Visual Paradigm)</button>
+
+  <button class="pp-open-btn" onclick="ppOpen()">עמודים להדפסה (A4)</button>
+  <div id="pp-overlay" class="pp-overlay">
+    <div class="pp-toolbar">
+      <button onclick="ppDownloadDocx()">הורדה כקובץ Word</button>
+      <button onclick="ppPrint()">הדפסה</button>
+      <button onclick="ppClose()">סגירה</button>
+      <span class="pp-hint">ל-Word: לחיצה ימנית על עמוד ← העתקת תמונה, ואז הדבקה</span>
+    </div>
+    <div id="pp-pages" class="pp-pages"></div>
+  </div>
+  <script>
+  (function() {
+    const TOOLTIPS = {"start-1":"<strong>אירוע התחלה בזמן</strong><div>יום עבודה התחיל</div>","t-1":"<strong>היכנס למסך &quot;פירוט דיווח ייצור&quot; וסנן לדיווחי אתמול</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: אחראי תפ&quot;י</div>","t-2":"<strong>הצג את דיווחי אתמול</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: Priority</div><div>קורא: Priority: דיווחי ייצור ופק&quot;עות</div>","t-3":"<strong>סנן לפי פק&quot;ע, פעולה או זן</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: אחראי תפ&quot;י</div>","gw-1":"<strong>XOR (בלעדי): פיצול</strong><div>שאלה: צריך ייצוא לאקסל?</div><div>ענפים:</div><ul style=\"margin:4px 0 0;padding-right:18px\"><li>כן ← ייצא את הרשימה לאקסל</li><li>לא ← gw-2</li></ul>","t-4":"<strong>ייצא את הרשימה לאקסל</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: Priority</div><div>קורא: Priority: דיווחי ייצור ופק&quot;עות</div><div>כותב: קובץ Excel של הדיווחים</div>","gw-2":"<strong>XOR (בלעדי): איחוד</strong>","gw-3":"<strong>XOR (בלעדי): איחוד</strong>","t-5":"<strong>השווה את הכמות שדווחה לכמות בפק&quot;ע</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: אחראי תפ&quot;י</div>","t-6":"<strong>היכנס לפק&quot;ע</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: אחראי תפ&quot;י</div>","t-7":"<strong>הצג את הפעולות שדווחו בפק&quot;ע</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: Priority</div><div>קורא: Priority: דיווחי ייצור ופק&quot;עות</div>","t-8":"<strong>בדוק את סדר הפעולות ואת הכמות</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: אחראי תפ&quot;י</div>","gw-4":"<strong>XOR (בלעדי): פיצול</strong><div>שאלה: יש סטייה או שאלה?</div><div>ענפים:</div><ul style=\"margin:4px 0 0;padding-right:18px\"><li>כן ← העבר את הסטייה לטיפול (תרשים 2)</li><li>לא ← gw-5</li></ul>","t-9":"<strong>העבר את הסטייה לטיפול (תרשים 2)</strong><div>מאגר: בתי צמיחה מי עמי · נתיב: אחראי תפ&quot;י</div>","gw-5":"<strong>XOR (בלעדי): איחוד</strong>","gw-6":"<strong>XOR (בלעדי): פיצול</strong><div>שאלה: נותרו פק&quot;עות לבדיקה?</div><div>ענפים:</div><ul style=\"margin:4px 0 0;padding-right:18px\"><li>כן ← gw-3</li><li>לא ← דיווחי אתמול נבדקו</li></ul>","end-1":"<strong>אירוע סיום</strong><div>דיווחי אתמול נבדקו</div>","ds-1":"<strong>מאגר נתונים: Priority: דיווחי ייצור ופק&quot;עות</strong><div>נקרא ע״י: הצג את דיווחי אתמול, ייצא את הרשימה לאקסל, הצג את הפעולות שדווחו בפק&quot;ע</div>","do-1":"<strong>אובייקט נתונים: קובץ Excel של הדיווחים</strong><div>נכתב ע״י: ייצא את הרשימה לאקסל</div>"};
+    const tip = document.getElementById('bpmn-tooltip');
+    document.querySelectorAll('.bpmn-element').forEach(function(g) {
+      g.addEventListener('mouseenter', function() {
+        const id = g.getAttribute('id');
+        const content = TOOLTIPS[id];
+        if (!content) return;
+        tip.innerHTML = content;
+        tip.style.display = 'block';
+      });
+      g.addEventListener('mousemove', function(e) {
+        tip.style.top = (e.clientY + 14) + 'px';
+        tip.style.left = (e.clientX + 14) + 'px';
+      });
+      g.addEventListener('mouseleave', function() { tip.style.display = 'none'; });
+    });
+
+    // Flow highlight: brighten and draw an unbroken copy on top of crossings.
+    // The hovered element itself is NEVER moved in the DOM: moving the node
+    // under the pointer can swallow the browser's mouseleave and leave the
+    // highlight stuck. A pointer-transparent clone gives the same z-lift safely.
+    document.querySelectorAll('.bpmn-flow').forEach(function(g) {
+      let ghost = null;
+      g.addEventListener('mouseenter', function() {
+        g.classList.add('bpmn-hl');
+        ghost = g.cloneNode(true);
+        ghost.removeAttribute('id');
+        ghost.style.pointerEvents = 'none';
+        g.ownerSVGElement.appendChild(ghost);  // unbroken copy on top
+      });
+      g.addEventListener('mouseleave', function() {
+        g.classList.remove('bpmn-hl');
+        if (ghost) { ghost.remove(); ghost = null; }
+      });
+    });
+  })();
+
+  
+  function toggleAssumptions() {
+    const p = document.getElementById('assumptions-panel');
+    p.style.display = p.style.display === 'block' ? 'none' : 'block';
+  }
+
+  // Precomputed BPMN 2.0 XML, server generated from the layout
+  const BPMN_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn:definitions xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"\n  xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\"\n  xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\"\n  xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\"\n  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n  id=\"Definitions_1\" targetNamespace=\"http://bpmn.io/schema/bpmn\">\n  <bpmn:dataStore id=\"ds-1_store\" name=\"Priority: דיווחי ייצור ופק&quot;עות\"/>\n  <bpmn:process id=\"process_1\" name=\"בתי צמיחה מי עמי\" isExecutable=\"false\">\n      <bpmn:laneSet id=\"process_1_laneset\">\n        <bpmn:lane id=\"lane-tpi\" name=\"אחראי תפ&quot;י\">\n          <bpmn:flowNodeRef>start-1</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-1</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-3</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>gw-1</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>gw-2</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>gw-3</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-5</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-6</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-8</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>gw-4</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-9</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>gw-5</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>gw-6</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>end-1</bpmn:flowNodeRef>\n        </bpmn:lane>\n        <bpmn:lane id=\"lane-priority\" name=\"Priority\">\n          <bpmn:flowNodeRef>t-2</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-4</bpmn:flowNodeRef>\n          <bpmn:flowNodeRef>t-7</bpmn:flowNodeRef>\n        </bpmn:lane>\n      </bpmn:laneSet>\n      <bpmn:startEvent id=\"start-1\" name=\"יום עבודה התחיל\">\n        <bpmn:timerEventDefinition id=\"start-1_def\"/>\n      </bpmn:startEvent>\n      <bpmn:task id=\"t-1\" name=\"היכנס למסך &quot;פירוט דיווח ייצור&quot; וסנן לדיווחי אתמול\"/>\n      <bpmn:task id=\"t-2\" name=\"הצג את דיווחי אתמול\">\n        <bpmn:property id=\"t-2_input\" name=\"__targetRef_placeholder\"/>\n        <bpmn:dataInputAssociation id=\"da-1\"><bpmn:sourceRef>ds-1</bpmn:sourceRef><bpmn:targetRef>t-2_input</bpmn:targetRef></bpmn:dataInputAssociation>\n      </bpmn:task>\n      <bpmn:task id=\"t-3\" name=\"סנן לפי פק&quot;ע, פעולה או זן\"/>\n      <bpmn:exclusiveGateway id=\"gw-1\" name=\"\"/>\n      <bpmn:task id=\"t-4\" name=\"ייצא את הרשימה לאקסל\">\n        <bpmn:property id=\"t-4_input\" name=\"__targetRef_placeholder\"/>\n        <bpmn:dataInputAssociation id=\"da-2\"><bpmn:sourceRef>ds-1</bpmn:sourceRef><bpmn:targetRef>t-4_input</bpmn:targetRef></bpmn:dataInputAssociation>\n        <bpmn:dataOutputAssociation id=\"da-3\"><bpmn:targetRef>do-1</bpmn:targetRef></bpmn:dataOutputAssociation>\n      </bpmn:task>\n      <bpmn:exclusiveGateway id=\"gw-2\" name=\"\"/>\n      <bpmn:exclusiveGateway id=\"gw-3\" name=\"\"/>\n      <bpmn:task id=\"t-5\" name=\"השווה את הכמות שדווחה לכמות בפק&quot;ע\"/>\n      <bpmn:task id=\"t-6\" name=\"היכנס לפק&quot;ע\"/>\n      <bpmn:task id=\"t-7\" name=\"הצג את הפעולות שדווחו בפק&quot;ע\">\n        <bpmn:property id=\"t-7_input\" name=\"__targetRef_placeholder\"/>\n        <bpmn:dataInputAssociation id=\"da-4\"><bpmn:sourceRef>ds-1</bpmn:sourceRef><bpmn:targetRef>t-7_input</bpmn:targetRef></bpmn:dataInputAssociation>\n      </bpmn:task>\n      <bpmn:task id=\"t-8\" name=\"בדוק את סדר הפעולות ואת הכמות\"/>\n      <bpmn:exclusiveGateway id=\"gw-4\" name=\"\"/>\n      <bpmn:task id=\"t-9\" name=\"העבר את הסטייה לטיפול (תרשים 2)\"/>\n      <bpmn:exclusiveGateway id=\"gw-5\" name=\"\"/>\n      <bpmn:exclusiveGateway id=\"gw-6\" name=\"\"/>\n      <bpmn:endEvent id=\"end-1\" name=\"דיווחי אתמול נבדקו\"/>\n      <bpmn:dataStoreReference id=\"ds-1\" name=\"Priority: דיווחי ייצור ופק&quot;עות\" dataStoreRef=\"ds-1_store\"/>\n      <bpmn:dataObject id=\"do-1_obj\"/>\n      <bpmn:dataObjectReference id=\"do-1\" name=\"קובץ Excel של הדיווחים\" dataObjectRef=\"do-1_obj\"/>\n      <bpmn:sequenceFlow id=\"sf-1\" sourceRef=\"start-1\" targetRef=\"t-1\"/>\n      <bpmn:sequenceFlow id=\"sf-2\" sourceRef=\"t-1\" targetRef=\"t-2\"/>\n      <bpmn:sequenceFlow id=\"sf-3\" sourceRef=\"t-2\" targetRef=\"t-3\"/>\n      <bpmn:sequenceFlow id=\"sf-4\" sourceRef=\"t-3\" targetRef=\"gw-1\"/>\n      <bpmn:sequenceFlow id=\"sf-5\" sourceRef=\"gw-1\" targetRef=\"t-4\" name=\"כן\"/>\n      <bpmn:sequenceFlow id=\"sf-6\" sourceRef=\"gw-1\" targetRef=\"gw-2\" name=\"לא\"/>\n      <bpmn:sequenceFlow id=\"sf-7\" sourceRef=\"t-4\" targetRef=\"gw-2\"/>\n      <bpmn:sequenceFlow id=\"sf-8\" sourceRef=\"gw-2\" targetRef=\"gw-3\"/>\n      <bpmn:sequenceFlow id=\"sf-9\" sourceRef=\"gw-3\" targetRef=\"t-5\"/>\n      <bpmn:sequenceFlow id=\"sf-10\" sourceRef=\"t-5\" targetRef=\"t-6\"/>\n      <bpmn:sequenceFlow id=\"sf-11\" sourceRef=\"t-6\" targetRef=\"t-7\"/>\n      <bpmn:sequenceFlow id=\"sf-12\" sourceRef=\"t-7\" targetRef=\"t-8\"/>\n      <bpmn:sequenceFlow id=\"sf-13\" sourceRef=\"t-8\" targetRef=\"gw-4\"/>\n      <bpmn:sequenceFlow id=\"sf-14\" sourceRef=\"gw-4\" targetRef=\"t-9\" name=\"כן\"/>\n      <bpmn:sequenceFlow id=\"sf-15\" sourceRef=\"gw-4\" targetRef=\"gw-5\" name=\"לא\"/>\n      <bpmn:sequenceFlow id=\"sf-16\" sourceRef=\"t-9\" targetRef=\"gw-5\"/>\n      <bpmn:sequenceFlow id=\"sf-17\" sourceRef=\"gw-5\" targetRef=\"gw-6\"/>\n      <bpmn:sequenceFlow id=\"sf-18\" sourceRef=\"gw-6\" targetRef=\"gw-3\" name=\"כן\"/>\n      <bpmn:sequenceFlow id=\"sf-19\" sourceRef=\"gw-6\" targetRef=\"end-1\" name=\"לא\"/>\n  </bpmn:process>\n  <bpmn:collaboration id=\"collab_1\">\n    <bpmn:participant id=\"pool-org\" name=\"בתי צמיחה מי עמי\" processRef=\"process_1\"/>\n  </bpmn:collaboration>\n  <bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">\n    <bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"collab_1\">\n      <bpmndi:BPMNShape id=\"pool-org_di\" bpmnElement=\"pool-org\" isHorizontal=\"true\">\n        <dc:Bounds x=\"20\" y=\"72\" width=\"2810\" height=\"440\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"lane-tpi_di\" bpmnElement=\"lane-tpi\" isHorizontal=\"true\">\n        <dc:Bounds x=\"50\" y=\"72\" width=\"2780\" height=\"272\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"lane-priority_di\" bpmnElement=\"lane-priority\" isHorizontal=\"true\">\n        <dc:Bounds x=\"50\" y=\"344\" width=\"2780\" height=\"168\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"start-1_di\" bpmnElement=\"start-1\">\n        <dc:Bounds x=\"126\" y=\"162\" width=\"36\" height=\"36\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-1_di\" bpmnElement=\"t-1\">\n        <dc:Bounds x=\"286\" y=\"96\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-3_di\" bpmnElement=\"t-3\">\n        <dc:Bounds x=\"286\" y=\"200\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gw-1_di\" bpmnElement=\"gw-1\">\n        <dc:Bounds x=\"544\" y=\"156\" width=\"48\" height=\"48\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gw-2_di\" bpmnElement=\"gw-2\">\n        <dc:Bounds x=\"968\" y=\"156\" width=\"48\" height=\"48\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gw-3_di\" bpmnElement=\"gw-3\">\n        <dc:Bounds x=\"1180\" y=\"156\" width=\"48\" height=\"48\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-5_di\" bpmnElement=\"t-5\">\n        <dc:Bounds x=\"1346\" y=\"148\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-6_di\" bpmnElement=\"t-6\">\n        <dc:Bounds x=\"1558\" y=\"96\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-8_di\" bpmnElement=\"t-8\">\n        <dc:Bounds x=\"1558\" y=\"200\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gw-4_di\" bpmnElement=\"gw-4\">\n        <dc:Bounds x=\"1816\" y=\"156\" width=\"48\" height=\"48\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-9_di\" bpmnElement=\"t-9\">\n        <dc:Bounds x=\"1982\" y=\"148\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gw-5_di\" bpmnElement=\"gw-5\">\n        <dc:Bounds x=\"2240\" y=\"156\" width=\"48\" height=\"48\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"gw-6_di\" bpmnElement=\"gw-6\">\n        <dc:Bounds x=\"2452\" y=\"156\" width=\"48\" height=\"48\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"end-1_di\" bpmnElement=\"end-1\">\n        <dc:Bounds x=\"2670\" y=\"162\" width=\"36\" height=\"36\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-2_di\" bpmnElement=\"t-2\">\n        <dc:Bounds x=\"286\" y=\"368\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-4_di\" bpmnElement=\"t-4\">\n        <dc:Bounds x=\"710\" y=\"368\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"t-7_di\" bpmnElement=\"t-7\">\n        <dc:Bounds x=\"1558\" y=\"368\" width=\"140\" height=\"64\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"ds-1_di\" bpmnElement=\"ds-1\">\n        <dc:Bounds x=\"893\" y=\"462\" width=\"56\" height=\"44\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNShape id=\"do-1_di\" bpmnElement=\"do-1\">\n        <dc:Bounds x=\"762\" y=\"462\" width=\"36\" height=\"44\"/>\n      </bpmndi:BPMNShape>\n      <bpmndi:BPMNEdge id=\"sf-1_di\" bpmnElement=\"sf-1\">\n        <di:waypoint x=\"162\" y=\"180\"/>\n        <di:waypoint x=\"260\" y=\"180\"/>\n        <di:waypoint x=\"260\" y=\"128\"/>\n        <di:waypoint x=\"286\" y=\"128\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-2_di\" bpmnElement=\"sf-2\">\n        <di:waypoint x=\"356\" y=\"160\"/>\n        <di:waypoint x=\"356\" y=\"187\"/>\n        <di:waypoint x=\"270\" y=\"187\"/>\n        <di:waypoint x=\"270\" y=\"342\"/>\n        <di:waypoint x=\"349\" y=\"342\"/>\n        <di:waypoint x=\"349\" y=\"368\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-3_di\" bpmnElement=\"sf-3\">\n        <di:waypoint x=\"363\" y=\"368\"/>\n        <di:waypoint x=\"363\" y=\"290\"/>\n        <di:waypoint x=\"356\" y=\"290\"/>\n        <di:waypoint x=\"356\" y=\"264\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-4_di\" bpmnElement=\"sf-4\">\n        <di:waypoint x=\"426\" y=\"232\"/>\n        <di:waypoint x=\"518\" y=\"232\"/>\n        <di:waypoint x=\"518\" y=\"180\"/>\n        <di:waypoint x=\"544\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-5_di\" bpmnElement=\"sf-5\">\n        <di:waypoint x=\"568\" y=\"204\"/>\n        <di:waypoint x=\"568\" y=\"342\"/>\n        <di:waypoint x=\"773\" y=\"342\"/>\n        <di:waypoint x=\"773\" y=\"368\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-6_di\" bpmnElement=\"sf-6\">\n        <di:waypoint x=\"592\" y=\"180\"/>\n        <di:waypoint x=\"968\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-7_di\" bpmnElement=\"sf-7\">\n        <di:waypoint x=\"787\" y=\"368\"/>\n        <di:waypoint x=\"787\" y=\"230\"/>\n        <di:waypoint x=\"992\" y=\"230\"/>\n        <di:waypoint x=\"992\" y=\"204\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-8_di\" bpmnElement=\"sf-8\">\n        <di:waypoint x=\"1016\" y=\"180\"/>\n        <di:waypoint x=\"1180\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-9_di\" bpmnElement=\"sf-9\">\n        <di:waypoint x=\"1228\" y=\"180\"/>\n        <di:waypoint x=\"1346\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-10_di\" bpmnElement=\"sf-10\">\n        <di:waypoint x=\"1486\" y=\"180\"/>\n        <di:waypoint x=\"1532\" y=\"180\"/>\n        <di:waypoint x=\"1532\" y=\"128\"/>\n        <di:waypoint x=\"1558\" y=\"128\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-11_di\" bpmnElement=\"sf-11\">\n        <di:waypoint x=\"1628\" y=\"160\"/>\n        <di:waypoint x=\"1628\" y=\"187\"/>\n        <di:waypoint x=\"1542\" y=\"187\"/>\n        <di:waypoint x=\"1542\" y=\"342\"/>\n        <di:waypoint x=\"1621\" y=\"342\"/>\n        <di:waypoint x=\"1621\" y=\"368\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-12_di\" bpmnElement=\"sf-12\">\n        <di:waypoint x=\"1635\" y=\"368\"/>\n        <di:waypoint x=\"1635\" y=\"290\"/>\n        <di:waypoint x=\"1628\" y=\"290\"/>\n        <di:waypoint x=\"1628\" y=\"264\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-13_di\" bpmnElement=\"sf-13\">\n        <di:waypoint x=\"1698\" y=\"232\"/>\n        <di:waypoint x=\"1790\" y=\"232\"/>\n        <di:waypoint x=\"1790\" y=\"180\"/>\n        <di:waypoint x=\"1816\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-14_di\" bpmnElement=\"sf-14\">\n        <di:waypoint x=\"1857\" y=\"173\"/>\n        <di:waypoint x=\"1956\" y=\"173\"/>\n        <di:waypoint x=\"1956\" y=\"180\"/>\n        <di:waypoint x=\"1982\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-15_di\" bpmnElement=\"sf-15\">\n        <di:waypoint x=\"1857\" y=\"187\"/>\n        <di:waypoint x=\"1966\" y=\"187\"/>\n        <di:waypoint x=\"1966\" y=\"134\"/>\n        <di:waypoint x=\"2214\" y=\"134\"/>\n        <di:waypoint x=\"2214\" y=\"173\"/>\n        <di:waypoint x=\"2247\" y=\"173\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-16_di\" bpmnElement=\"sf-16\">\n        <di:waypoint x=\"2122\" y=\"180\"/>\n        <di:waypoint x=\"2214\" y=\"180\"/>\n        <di:waypoint x=\"2214\" y=\"187\"/>\n        <di:waypoint x=\"2247\" y=\"187\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-17_di\" bpmnElement=\"sf-17\">\n        <di:waypoint x=\"2288\" y=\"180\"/>\n        <di:waypoint x=\"2452\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-18_di\" bpmnElement=\"sf-18\">\n        <di:waypoint x=\"2476\" y=\"204\"/>\n        <di:waypoint x=\"2476\" y=\"280\"/>\n        <di:waypoint x=\"1204\" y=\"280\"/>\n        <di:waypoint x=\"1204\" y=\"204\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"sf-19_di\" bpmnElement=\"sf-19\">\n        <di:waypoint x=\"2500\" y=\"180\"/>\n        <di:waypoint x=\"2670\" y=\"180\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"da-1_di\" bpmnElement=\"da-1\">\n        <di:waypoint x=\"907\" y=\"462\"/>\n        <di:waypoint x=\"907\" y=\"446\"/>\n        <di:waypoint x=\"907\" y=\"444\"/>\n        <di:waypoint x=\"356\" y=\"444\"/>\n        <di:waypoint x=\"356\" y=\"432\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"da-2_di\" bpmnElement=\"da-2\">\n        <di:waypoint x=\"921\" y=\"462\"/>\n        <di:waypoint x=\"921\" y=\"446\"/>\n        <di:waypoint x=\"921\" y=\"436\"/>\n        <di:waypoint x=\"866\" y=\"436\"/>\n        <di:waypoint x=\"866\" y=\"458\"/>\n        <di:waypoint x=\"814\" y=\"458\"/>\n        <di:waypoint x=\"814\" y=\"451\"/>\n        <di:waypoint x=\"787\" y=\"451\"/>\n        <di:waypoint x=\"787\" y=\"432\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"da-3_di\" bpmnElement=\"da-3\">\n        <di:waypoint x=\"773\" y=\"432\"/>\n        <di:waypoint x=\"773\" y=\"450\"/>\n        <di:waypoint x=\"780\" y=\"450\"/>\n        <di:waypoint x=\"780\" y=\"462\"/>\n      </bpmndi:BPMNEdge>\n      <bpmndi:BPMNEdge id=\"da-4_di\" bpmnElement=\"da-4\">\n        <di:waypoint x=\"935\" y=\"462\"/>\n        <di:waypoint x=\"935\" y=\"446\"/>\n        <di:waypoint x=\"935\" y=\"448\"/>\n        <di:waypoint x=\"1628\" y=\"448\"/>\n        <di:waypoint x=\"1628\" y=\"432\"/>\n      </bpmndi:BPMNEdge>\n    </bpmndi:BPMNPlane>\n  </bpmndi:BPMNDiagram>\n</bpmn:definitions>";
+  const BPMN_FILENAME = "Daily_check_of_production_reports_C2-C5_AS-IS.bpmn";
+  function exportBPMN() {
+    const blob = new Blob([BPMN_XML], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = BPMN_FILENAME;
+    document.body.appendChild(a); a.click();
+    setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  }
+
+  (function() {
+    var ASPECT = 1.55, PAGE_PX = 3300, PAD = 10, FOOTER = 24, GAP = 6;
+    var FONT_CSS = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;500;700&display=swap';
+    var pages = null, fontFaceCss = null;
+
+    function box(el) { var b = el.getBBox(); return { x0: b.x, x1: b.x + b.width, y0: b.y, y1: b.y + b.height }; }
+    function rectBox(r) {
+      var x = +r.getAttribute('x'), y = +r.getAttribute('y');
+      return { x0: x, x1: x + +r.getAttribute('width'), y0: y, y1: y + +r.getAttribute('height') };
+    }
+
+    function measure(svg) {
+      var pools = [].map.call(svg.querySelectorAll('.bpmn-pool'), function(g) {
+        var rs = g.querySelectorAll('rect');
+        return { body: rectBox(rs[0]), header: rectBox(rs[1]) };
+      });
+      var laneHeaders = [].map.call(svg.querySelectorAll('.bpmn-lane'), function(g) {
+        return rectBox(g.querySelectorAll('rect')[1]);
+      });
+      var obstacles = [].map.call(svg.querySelectorAll('.bpmn-element, .bpmn-flow-label'), box);
+      var all = pools.map(function(p) { return p.body; }).concat(obstacles);
+      var x0 = Math.min.apply(null, all.map(function(b) { return b.x0; })) - PAD;
+      var x1 = Math.max.apply(null, all.map(function(b) { return b.x1; })) + PAD;
+      var y0 = Math.min.apply(null, all.map(function(b) { return b.y0; })) - PAD;
+      var y1 = Math.max.apply(null, all.map(function(b) { return b.y1; })) + PAD;
+      var stripEnd = Math.max.apply(null, pools.map(function(p) { return p.header.x1; })
+        .concat(laneHeaders.map(function(b) { return b.x1; })));
+      if (!pools.length) stripEnd = x0;
+      var blocked = obstacles
+        .filter(function(b) { return b.x1 > stripEnd; })
+        .map(function(b) { return [b.x0 - GAP, b.x1 + GAP]; })
+        .sort(function(a, b) { return a[0] - b[0]; });
+      return { x0: x0, x1: x1, y0: y0, y1: y1, stripEnd: stripEnd, blocked: blocked };
+    }
+
+    function isFree(blocked, x) {
+      for (var i = 0; i < blocked.length; i++) if (x > blocked[i][0] && x < blocked[i][1]) return false;
+      return true;
+    }
+
+    // Free x nearest to target inside [lo, hi]; the clamped target if none is free.
+    function bestCut(blocked, target, lo, hi) {
+      var cands = [target];
+      blocked.forEach(function(iv) { cands.push(iv[0], iv[1]); });
+      var best = null;
+      cands.forEach(function(x) {
+        if (x <= lo || x > hi || !isFree(blocked, x)) return;
+        if (best === null || Math.abs(x - target) < Math.abs(best - target)) best = x;
+      });
+      return best !== null ? best : Math.min(hi, Math.max(lo + 1, target));
+    }
+
+    function planCuts(m, sliceW) {
+      var start = m.stripEnd, end = m.x1, n = 0, pos = start;
+      while (pos < end) { pos = end - pos <= sliceW ? end : bestCut(m.blocked, pos + sliceW, pos + sliceW / 2, pos + sliceW); n++; }
+      var cuts = [start];
+      for (var i = 1; i < n; i++) {
+        var prev = cuts[i - 1], left = n - i;
+        var lo = Math.max(prev, end - left * sliceW), hi = prev + sliceW;
+        cuts.push(bestCut(m.blocked, prev + (end - prev) / (left + 1), lo, hi));
+      }
+      cuts.push(end);
+      return cuts;
+    }
+
+    function esc(s) { return String(s).replace(/[&<>"]/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+    function diagramMarkup(svg) {
+      var clone = svg.cloneNode(true);
+      [].slice.call(clone.children).forEach(function(c) {
+        if (c.tagName === 'rect' && +c.getAttribute('x') === 0 && +c.getAttribute('y') === 0) c.remove();
+      });
+      return clone.innerHTML;
+    }
+
+    function pageSvg(inner, m, cuts, i, pageW, pageH, title) {
+      var stripW = m.stripEnd - m.x0, h = m.y1 - m.y0, sliceW = cuts[i + 1] - cuts[i];
+      var n = cuts.length - 1, px = PAGE_PX, py = Math.round(PAGE_PX * pageH / pageW);
+      var dash = 'stroke="#90a4ae" stroke-width="1.2" stroke-dasharray="6 4"';
+      var marks = (i > 0 ? '<line x1="' + stripW + '" y1="0" x2="' + stripW + '" y2="' + h + '" ' + dash + '/>' : '')
+        + (i < n - 1 ? '<line x1="' + (stripW + sliceW) + '" y1="0" x2="' + (stripW + sliceW) + '" y2="' + h + '" ' + dash + '/>' : '');
+      return '<svg xmlns="http://www.w3.org/2000/svg" width="' + px + '" height="' + py + '" viewBox="0 0 ' + pageW + ' ' + pageH + '">'
+        + '<style>' + (fontFaceCss || '') + " text { font-family: 'Noto Sans Hebrew', Arial, sans-serif; }</style>"
+        + '<rect x="0" y="0" width="' + pageW + '" height="' + pageH + '" fill="#ffffff"/>'
+        + '<svg x="0" y="0" width="' + stripW + '" height="' + h + '" viewBox="' + m.x0 + ' ' + m.y0 + ' ' + stripW + ' ' + h + '">' + inner + '</svg>'
+        + '<svg x="' + stripW + '" y="0" width="' + sliceW + '" height="' + h + '" viewBox="' + cuts[i] + ' ' + m.y0 + ' ' + sliceW + ' ' + h + '">' + inner + '</svg>'
+        + marks
+        + '<text x="' + (pageW - 4) + '" y="' + (pageH - 8) + '" font-size="11" fill="#546e7a" direction="rtl" text-anchor="start">' + esc(title) + '</text>'
+        + '<text x="4" y="' + (pageH - 8) + '" font-size="11" fill="#546e7a" direction="rtl" text-anchor="end">עמוד ' + (i + 1) + ' מתוך ' + n + '</text>'
+        + '</svg>';
+    }
+
+    function toDataUrl(blob) {
+      return new Promise(function(res) { var r = new FileReader(); r.onload = function() { res(r.result); }; r.readAsDataURL(blob); });
+    }
+
+    // An SVG drawn as an image cannot load web fonts, so inline them; without
+    // network access the page falls back to Arial, which also has Hebrew.
+    function loadFonts() {
+      if (fontFaceCss !== null) return Promise.resolve();
+      return fetch(FONT_CSS).then(function(r) { return r.text(); }).then(function(css) {
+        var urls = css.match(/url\([^)]+\)/g) || [];
+        return Promise.all(urls.map(function(u) {
+          var href = u.slice(4, -1).replace(/['"]/g, '');
+          return fetch(href).then(function(r) { return r.blob(); }).then(toDataUrl)
+            .then(function(d) { css = css.split(href).join(d); });
+        })).then(function() { fontFaceCss = css; });
+      }).catch(function() { fontFaceCss = ''; });
+    }
+
+    function rasterize(svgText) {
+      return new Promise(function(res, rej) {
+        var img = new Image();
+        img.onload = function() {
+          var c = document.createElement('canvas');
+          c.width = img.naturalWidth; c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+          res(c.toDataURL('image/png'));
+        };
+        img.onerror = rej;
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
+      });
+    }
+
+    function build() {
+      var svg = document.querySelector('.svg-wrapper svg');
+      var title = (document.querySelector('.header-bar h1') || {}).textContent || '';
+      var m = measure(svg);
+      var pageH = (m.y1 - m.y0) + FOOTER, pageW = Math.round(pageH * ASPECT);
+      var cuts = planCuts(m, pageW - (m.stripEnd - m.x0));
+      var widest = 0;
+      for (var k = 0; k < cuts.length - 1; k++) widest = Math.max(widest, cuts[k + 1] - cuts[k]);
+      pageW = Math.ceil(m.stripEnd - m.x0 + widest);
+      var inner = diagramMarkup(svg);
+      return loadFonts().then(function() {
+        var jobs = [];
+        for (var i = 0; i < cuts.length - 1; i++) jobs.push(rasterize(pageSvg(inner, m, cuts, i, pageW, pageH, title)));
+        return Promise.all(jobs);
+      });
+    }
+
+    function fileBase() {
+      return (typeof BPMN_FILENAME === 'string' ? BPMN_FILENAME : 'bpmn').replace(/\.bpmn$/, '');
+    }
+
+    // One .docx with a landscape A4 page per image, at Word's default margins.
+
+    var CRC_TABLE = (function() {
+      var t = [];
+      for (var n = 0; n < 256; n++) {
+        var c = n;
+        for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+        t[n] = c >>> 0;
+      }
+      return t;
+    })();
+    function crc32(bytes) {
+      var c = 0xFFFFFFFF;
+      for (var i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+      return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    // Uncompressed ("stored") zip: PNGs are already compressed.
+    function zip(files) {
+      var enc = new TextEncoder(), parts = [], central = [], offset = 0;
+      function u16(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
+      function u32(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
+      files.forEach(function(f) {
+        var name = enc.encode(f.name), data = f.data, crc = crc32(data);
+        var common = [].concat(u16(0), u16(0), u16(0), u16(0x21), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0));
+        var local = new Uint8Array([].concat(u32(0x04034b50), u16(20), common));
+        parts.push(local, name, data);
+        central.push(new Uint8Array([].concat(u32(0x02014b50), u16(20), u16(20), common, u16(0), u16(0), u16(0), u32(0), u32(offset))), name);
+        offset += local.length + name.length + data.length;
+      });
+      var size = central.reduce(function(n, p) { return n + p.length; }, 0);
+      var end = new Uint8Array([].concat(u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(size), u32(offset), u16(0)));
+      return new Blob(parts.concat(central, [end]), { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    }
+
+    function pngBytes(dataUrl) {
+      var bin = atob(dataUrl.slice(dataUrl.indexOf(',') + 1)), out = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+
+    function pngSize(bytes) {
+      function at(o) { return ((bytes[o] << 24) | (bytes[o + 1] << 16) | (bytes[o + 2] << 8) | bytes[o + 3]) >>> 0; }
+      return { w: at(16), h: at(20) };
+    }
+
+    function buildDocx(urls) {
+      var EMU_CM = 360000, MAX_W = 24.7 * EMU_CM, MAX_H = 15.4 * EMU_CM;
+      var enc = new TextEncoder(), files = [], rels = [], body = [];
+      urls.forEach(function(u, i) {
+        var n = i + 1, data = pngBytes(u), px = pngSize(data);
+        var cx = MAX_W, cy = Math.round(MAX_W * px.h / px.w);
+        if (cy > MAX_H) { cy = MAX_H; cx = Math.round(MAX_H * px.w / px.h); }
+        files.push({ name: 'word/media/page' + n + '.png', data: data });
+        rels.push('<Relationship Id="rIdP' + n + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/page' + n + '.png"/>');
+        body.push('<w:p><w:pPr><w:jc w:val="center"/></w:pPr>'
+          + (i > 0 ? '<w:r><w:br w:type="page"/></w:r>' : '')
+          + '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">'
+          + '<wp:extent cx="' + cx + '" cy="' + cy + '"/><wp:docPr id="' + n + '" name="page' + n + '"/>'
+          + '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+          + '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+          + '<pic:nvPicPr><pic:cNvPr id="' + n + '" name="page' + n + '.png"/><pic:cNvPicPr/></pic:nvPicPr>'
+          + '<pic:blipFill><a:blip r:embed="rIdP' + n + '"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+          + '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>'
+          + '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>');
+      });
+      var xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+      files.unshift(
+        { name: '[Content_Types].xml', data: enc.encode(xml
+          + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+          + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+          + '<Default Extension="xml" ContentType="application/xml"/>'
+          + '<Default Extension="png" ContentType="image/png"/>'
+          + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+          + '</Types>') },
+        { name: '_rels/.rels', data: enc.encode(xml
+          + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+          + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+          + '</Relationships>') },
+        { name: 'word/_rels/document.xml.rels', data: enc.encode(xml
+          + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + rels.join('') + '</Relationships>') },
+        { name: 'word/document.xml', data: enc.encode(xml
+          + '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+          + ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'
+          + ' xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><w:body>'
+          + body.join('')
+          + '<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>'
+          + '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>'
+          + '</w:body></w:document>') });
+      return zip(files);
+    }
+
+    window.ppOpen = function() {
+      var overlay = document.getElementById('pp-overlay'), host = document.getElementById('pp-pages');
+      overlay.classList.add('pp-show');
+      if (pages) return;
+      host.innerHTML = '<div class="pp-status">מכין עמודים…</div>';
+      build().then(function(urls) {
+        pages = urls;
+        host.innerHTML = urls.map(function(u, i) {
+          return '<div class="pp-page"><img src="' + u + '" alt="עמוד ' + (i + 1) + '">'
+            + '<a href="' + u + '" download="' + esc(fileBase()) + '_page-' + (i + 1) + '.png">הורדת עמוד ' + (i + 1) + ' (PNG)</a></div>';
+        }).join('');
+      }).catch(function(e) {
+        host.innerHTML = '<div class="pp-status">הכנת העמודים נכשלה: ' + esc(e && e.message || e) + '</div>';
+      });
+    };
+    window.ppClose = function() { document.getElementById('pp-overlay').classList.remove('pp-show'); };
+    window.ppPrint = function() {
+      if (!pages) return;
+      document.body.classList.add('pp-printing');
+      window.print();
+      document.body.classList.remove('pp-printing');
+    };
+    window.ppDownloadDocx = function() {
+      if (!pages) return;
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(buildDocx(pages)); a.download = fileBase() + '_A4.docx';
+      document.body.appendChild(a); a.click();
+      setTimeout(function() { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    };
+  })();
+  </script>
+</body>
+</html>

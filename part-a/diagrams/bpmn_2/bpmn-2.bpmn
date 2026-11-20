@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:dataStore id="ds-1_store" name="Priority: דיווחי ייצור ופק&quot;עות"/>
+  <bpmn:process id="process_1" name="בתי צמיחה מי עמי" isExecutable="false">
+      <bpmn:laneSet id="process_1_laneset">
+        <bpmn:lane id="lane-tpi" name="אחראי תפ&quot;י">
+          <bpmn:flowNodeRef>start-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-1</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-0</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-2</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-7</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-4</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-8</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-5</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-6</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>end-1</bpmn:flowNodeRef>
+        </bpmn:lane>
+        <bpmn:lane id="lane-field" name="אחראי שטח">
+          <bpmn:flowNodeRef>t-3</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-2</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-4</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>gw-3</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-5</bpmn:flowNodeRef>
+          <bpmn:flowNodeRef>t-6</bpmn:flowNodeRef>
+        </bpmn:lane>
+      </bpmn:laneSet>
+      <bpmn:startEvent id="start-1" name="סטייה הועברה לטיפול"/>
+      <bpmn:task id="t-1" name="הערך את הסטייה לפי שיקול דעת"/>
+      <bpmn:exclusiveGateway id="gw-1" name=""/>
+      <bpmn:task id="t-0" name="תקן את הדיווח בעיגול הכמות">
+        <bpmn:dataOutputAssociation id="da-0"><bpmn:targetRef>ds-1</bpmn:targetRef></bpmn:dataOutputAssociation>
+      </bpmn:task>
+      <bpmn:task id="t-2" name="התקשר לאחראי השטח והעבר את פרטי הסטייה"/>
+      <bpmn:task id="t-3" name="גש למיקום הרשום של הפק&quot;ע"/>
+      <bpmn:exclusiveGateway id="gw-2" name=""/>
+      <bpmn:task id="t-4" name="חפש את הצמחים בשטח עם עובדי ייצור"/>
+      <bpmn:exclusiveGateway id="gw-3" name=""/>
+      <bpmn:task id="t-5" name="ספור או הערך את הכמות בפועל"/>
+      <bpmn:task id="t-6" name="החזר תשובה לאחראי התפ&quot;י"/>
+      <bpmn:task id="t-7" name="עדכן את פירוט דיווח הייצור">
+        <bpmn:dataOutputAssociation id="da-1"><bpmn:targetRef>ds-1__2</bpmn:targetRef></bpmn:dataOutputAssociation>
+      </bpmn:task>
+      <bpmn:exclusiveGateway id="gw-4" name=""/>
+      <bpmn:task id="t-8" name="עדכן את כמות הפק&quot;ע לשלבים הבאים">
+        <bpmn:dataOutputAssociation id="da-2"><bpmn:targetRef>ds-1__2</bpmn:targetRef></bpmn:dataOutputAssociation>
+      </bpmn:task>
+      <bpmn:exclusiveGateway id="gw-5" name=""/>
+      <bpmn:exclusiveGateway id="gw-6" name=""/>
+      <bpmn:endEvent id="end-1" name="הסטייה טופלה"/>
+      <bpmn:dataStoreReference id="ds-1" name="Priority: דיווחי ייצור ופק&quot;עות" dataStoreRef="ds-1_store"/>
+      <bpmn:dataStoreReference id="ds-1__2" name="Priority: דיווחי ייצור ופק&quot;עות" dataStoreRef="ds-1_store"/>
+      <bpmn:sequenceFlow id="sf-1" sourceRef="start-1" targetRef="t-1"/>
+      <bpmn:sequenceFlow id="sf-2" sourceRef="t-1" targetRef="gw-1"/>
+      <bpmn:sequenceFlow id="sf-3" sourceRef="gw-1" targetRef="t-2" name="כן"/>
+      <bpmn:sequenceFlow id="sf-4" sourceRef="gw-1" targetRef="t-0" name="לא, סטייה קטנה"/>
+      <bpmn:sequenceFlow id="sf-4b" sourceRef="t-0" targetRef="gw-6"/>
+      <bpmn:sequenceFlow id="sf-5" sourceRef="t-2" targetRef="t-3"/>
+      <bpmn:sequenceFlow id="sf-6" sourceRef="t-3" targetRef="gw-2"/>
+      <bpmn:sequenceFlow id="sf-7" sourceRef="gw-2" targetRef="gw-3" name="כן"/>
+      <bpmn:sequenceFlow id="sf-8" sourceRef="gw-2" targetRef="t-4" name="לא, הוזזו"/>
+      <bpmn:sequenceFlow id="sf-9" sourceRef="t-4" targetRef="gw-3"/>
+      <bpmn:sequenceFlow id="sf-10" sourceRef="gw-3" targetRef="t-5"/>
+      <bpmn:sequenceFlow id="sf-11" sourceRef="t-5" targetRef="t-6"/>
+      <bpmn:sequenceFlow id="sf-12" sourceRef="t-6" targetRef="t-7"/>
+      <bpmn:sequenceFlow id="sf-13" sourceRef="t-7" targetRef="gw-4"/>
+      <bpmn:sequenceFlow id="sf-14" sourceRef="gw-4" targetRef="t-8" name="כן"/>
+      <bpmn:sequenceFlow id="sf-15" sourceRef="gw-4" targetRef="gw-5" name="לא"/>
+      <bpmn:sequenceFlow id="sf-16" sourceRef="t-8" targetRef="gw-5"/>
+      <bpmn:sequenceFlow id="sf-17" sourceRef="gw-5" targetRef="gw-6"/>
+      <bpmn:sequenceFlow id="sf-18" sourceRef="gw-6" targetRef="end-1"/>
+  </bpmn:process>
+  <bpmn:collaboration id="collab_1">
+    <bpmn:participant id="pool-org" name="בתי צמיחה מי עמי" processRef="process_1"/>
+  </bpmn:collaboration>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="collab_1">
+      <bpmndi:BPMNShape id="pool-org_di" bpmnElement="pool-org" isHorizontal="true">
+        <dc:Bounds x="20" y="72" width="3046" height="440"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane-tpi_di" bpmnElement="lane-tpi" isHorizontal="true">
+        <dc:Bounds x="50" y="72" width="3016" height="272"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lane-field_di" bpmnElement="lane-field" isHorizontal="true">
+        <dc:Bounds x="50" y="344" width="3016" height="168"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start-1_di" bpmnElement="start-1">
+        <dc:Bounds x="126" y="162" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-1_di" bpmnElement="t-1">
+        <dc:Bounds x="286" y="148" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-1_di" bpmnElement="gw-1">
+        <dc:Bounds x="544" y="156" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-0_di" bpmnElement="t-0">
+        <dc:Bounds x="734" y="96" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-2_di" bpmnElement="t-2">
+        <dc:Bounds x="734" y="200" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-7_di" bpmnElement="t-7">
+        <dc:Bounds x="1794" y="148" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-4_di" bpmnElement="gw-4">
+        <dc:Bounds x="2052" y="156" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-8_di" bpmnElement="t-8">
+        <dc:Bounds x="2218" y="148" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-5_di" bpmnElement="gw-5">
+        <dc:Bounds x="2476" y="156" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-6_di" bpmnElement="gw-6">
+        <dc:Bounds x="2688" y="156" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end-1_di" bpmnElement="end-1">
+        <dc:Bounds x="2906" y="162" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-3_di" bpmnElement="t-3">
+        <dc:Bounds x="734" y="368" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-2_di" bpmnElement="gw-2">
+        <dc:Bounds x="992" y="376" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-4_di" bpmnElement="t-4">
+        <dc:Bounds x="1158" y="368" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gw-3_di" bpmnElement="gw-3">
+        <dc:Bounds x="1416" y="376" width="48" height="48"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-5_di" bpmnElement="t-5">
+        <dc:Bounds x="1582" y="368" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="t-6_di" bpmnElement="t-6">
+        <dc:Bounds x="1794" y="368" width="140" height="64"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds-1_di" bpmnElement="ds-1">
+        <dc:Bounds x="776" y="294" width="56" height="44"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ds-1__2_di" bpmnElement="ds-1__2">
+        <dc:Bounds x="2048" y="294" width="56" height="44"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="sf-1_di" bpmnElement="sf-1">
+        <di:waypoint x="162" y="180"/>
+        <di:waypoint x="286" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-2_di" bpmnElement="sf-2">
+        <di:waypoint x="426" y="180"/>
+        <di:waypoint x="544" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-3_di" bpmnElement="sf-3">
+        <di:waypoint x="568" y="204"/>
+        <di:waypoint x="568" y="232"/>
+        <di:waypoint x="734" y="232"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-4_di" bpmnElement="sf-4">
+        <di:waypoint x="592" y="180"/>
+        <di:waypoint x="708" y="180"/>
+        <di:waypoint x="708" y="128"/>
+        <di:waypoint x="734" y="128"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-4b_di" bpmnElement="sf-4b">
+        <di:waypoint x="874" y="128"/>
+        <di:waypoint x="1988" y="128"/>
+        <di:waypoint x="1988" y="100"/>
+        <di:waypoint x="2662" y="100"/>
+        <di:waypoint x="2662" y="173"/>
+        <di:waypoint x="2695" y="173"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-5_di" bpmnElement="sf-5">
+        <di:waypoint x="804" y="264"/>
+        <di:waypoint x="804" y="280"/>
+        <di:waypoint x="900" y="280"/>
+        <di:waypoint x="900" y="428"/>
+        <di:waypoint x="874" y="428"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-6_di" bpmnElement="sf-6">
+        <di:waypoint x="874" y="400"/>
+        <di:waypoint x="992" y="400"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-7_di" bpmnElement="sf-7">
+        <di:waypoint x="1033" y="393"/>
+        <di:waypoint x="1142" y="393"/>
+        <di:waypoint x="1142" y="354"/>
+        <di:waypoint x="1390" y="354"/>
+        <di:waypoint x="1390" y="393"/>
+        <di:waypoint x="1423" y="393"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-8_di" bpmnElement="sf-8">
+        <di:waypoint x="1033" y="407"/>
+        <di:waypoint x="1132" y="407"/>
+        <di:waypoint x="1132" y="400"/>
+        <di:waypoint x="1158" y="400"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-9_di" bpmnElement="sf-9">
+        <di:waypoint x="1298" y="400"/>
+        <di:waypoint x="1390" y="400"/>
+        <di:waypoint x="1390" y="407"/>
+        <di:waypoint x="1423" y="407"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-10_di" bpmnElement="sf-10">
+        <di:waypoint x="1464" y="400"/>
+        <di:waypoint x="1582" y="400"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-11_di" bpmnElement="sf-11">
+        <di:waypoint x="1722" y="400"/>
+        <di:waypoint x="1794" y="400"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-12_di" bpmnElement="sf-12">
+        <di:waypoint x="1864" y="368"/>
+        <di:waypoint x="1864" y="238"/>
+        <di:waypoint x="1857" y="238"/>
+        <di:waypoint x="1857" y="212"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-13_di" bpmnElement="sf-13">
+        <di:waypoint x="1934" y="180"/>
+        <di:waypoint x="2052" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-14_di" bpmnElement="sf-14">
+        <di:waypoint x="2093" y="173"/>
+        <di:waypoint x="2192" y="173"/>
+        <di:waypoint x="2192" y="180"/>
+        <di:waypoint x="2218" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-15_di" bpmnElement="sf-15">
+        <di:waypoint x="2093" y="187"/>
+        <di:waypoint x="2202" y="187"/>
+        <di:waypoint x="2202" y="134"/>
+        <di:waypoint x="2450" y="134"/>
+        <di:waypoint x="2450" y="173"/>
+        <di:waypoint x="2483" y="173"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-16_di" bpmnElement="sf-16">
+        <di:waypoint x="2358" y="180"/>
+        <di:waypoint x="2450" y="180"/>
+        <di:waypoint x="2450" y="187"/>
+        <di:waypoint x="2483" y="187"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-17_di" bpmnElement="sf-17">
+        <di:waypoint x="2524" y="180"/>
+        <di:waypoint x="2662" y="180"/>
+        <di:waypoint x="2662" y="187"/>
+        <di:waypoint x="2695" y="187"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf-18_di" bpmnElement="sf-18">
+        <di:waypoint x="2736" y="180"/>
+        <di:waypoint x="2906" y="180"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-0_di" bpmnElement="da-0">
+        <di:waypoint x="804" y="160"/>
+        <di:waypoint x="804" y="187"/>
+        <di:waypoint x="718" y="187"/>
+        <di:waypoint x="718" y="278"/>
+        <di:waypoint x="804" y="278"/>
+        <di:waypoint x="804" y="294"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-1_di" bpmnElement="da-1">
+        <di:waypoint x="1871" y="212"/>
+        <di:waypoint x="1871" y="268"/>
+        <di:waypoint x="2069" y="268"/>
+        <di:waypoint x="2069" y="294"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="da-2_di" bpmnElement="da-2">
+        <di:waypoint x="2288" y="212"/>
+        <di:waypoint x="2288" y="268"/>
+        <di:waypoint x="2083" y="268"/>
+        <di:waypoint x="2083" y="294"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
