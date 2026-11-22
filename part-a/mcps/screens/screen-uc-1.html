@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box} body{margin:0;font-family:'Liberation Sans','DejaVu Sans',sans-serif;font-size:14px;color:#1d2a24;background:#c9d1cc}
+.win{width:1280px;height:800px;margin:0;background:#f4f6f5;display:flex;flex-direction:column;direction:rtl;border:1px solid #6d7a73}
+.title{height:40px;background:#2f5d46;color:#fff;display:flex;align-items:center;padding:0 14px;justify-content:space-between}
+.title b{font-size:15px} .wbtn{display:flex;gap:8px;direction:ltr} .wbtn span{width:12px;height:12px;border-radius:50%;background:#dfe7e2;display:inline-block}
+.body{flex:1;display:flex;min-height:0}
+.side{width:200px;background:#e3ebe6;border-left:1px solid #c3cfc8;padding:12px 0}
+.side div{padding:9px 18px;color:#2e3d35} .side .on{background:#2f5d46;color:#fff;font-weight:bold}
+.main{flex:1;padding:16px 22px;overflow:hidden;position:relative}
+h1{font-size:20px;margin:0 0 4px} .sub{color:#5b6a62;margin-bottom:12px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid #cfd8d3;padding:10px 12px;border-radius:6px;margin-bottom:12px}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#4b5a52}
+.in{background:#fff;border:1px solid #9fb0a7;border-radius:4px;padding:5px 8px;min-width:110px;font-size:13px;color:#1d2a24}
+.in.err{border:2px solid #b3261e}
+.btn{background:#2f5d46;color:#fff;border-radius:4px;padding:7px 14px;font-weight:bold;font-size:13px;display:inline-block}
+.btn.sec{background:#fff;color:#2f5d46;border:1px solid #2f5d46} .btn.warn{background:#8a5a00}
+.cards{display:flex;gap:10px;margin-bottom:12px} .card{flex:1;background:#fff;border:1px solid #cfd8d3;border-radius:6px;padding:10px 12px}
+.card .n{font-size:24px;font-weight:bold;color:#2f5d46} .card .l{color:#5b6a62;font-size:12px}
+.card.bad .n{color:#b3261e} .card.amb .n{color:#8a5a00}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #cfd8d3;font-size:13px}
+th{background:#dfe8e3;text-align:right;padding:6px 8px;font-size:12px;color:#33443b;border-bottom:1px solid #c3cfc8}
+td{padding:6px 8px;border-bottom:1px solid #e6ebe8} tr.sel td{background:#e8f1ec} tr.hl td{background:#fdf1e0}
+.tag{display:inline-block;padding:1px 7px;border-radius:9px;font-size:11px;font-weight:bold}
+.open{background:#fbe3e1;color:#9b1c14} .fixed{background:#dff0e4;color:#1f6b3a} .negl{background:#e9e9e9;color:#555}
+.ver{background:#e4e9f7;color:#2b4a9b} .warnt{background:#fdf1e0;color:#8a5a00}
+.panel{background:#fff;border:1px solid #cfd8d3;border-radius:6px;padding:12px;margin-top:12px}
+.panel h3{margin:0 0 8px;font-size:15px}
+.cols{display:flex;gap:12px} .cols>div{flex:1}
+.chg{background:#fdf1e0;font-weight:bold}
+.status{height:24px;background:#dfe7e2;border-top:1px solid #c3cfc8;font-size:11px;color:#4b5a52;display:flex;align-items:center;padding:0 12px;justify-content:space-between}
+.overlay{position:absolute;inset:0;background:rgba(20,30,25,.45);display:flex;align-items:center;justify-content:center}
+.modal{width:520px;background:#fff;border-radius:8px;padding:18px 20px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.modal h3{margin:0 0 10px;font-size:17px}
+.ta{border:1px solid #9fb0a7;border-radius:4px;height:70px;padding:6px 8px;color:#1d2a24}
+.banner{background:#fdf1e0;border:1px solid #e0b46a;color:#6b4500;border-radius:6px;padding:8px 12px;margin-bottom:12px;font-weight:bold}
+.note{font-size:12px;color:#5b6a62;margin-top:6px} .red{color:#b3261e;font-weight:bold} .muted{color:#7a8780}
+.chk{display:inline-block;width:13px;height:13px;border:1px solid #6d7a73;border-radius:2px;vertical-align:middle;background:#fff}
+.chk.on{background:#2f5d46;border-color:#2f5d46}
+.radio{display:inline-block;width:12px;height:12px;border:1px solid #6d7a73;border-radius:50%;vertical-align:middle;margin-left:4px}
+.radio.on{background:radial-gradient(#2f5d46 45%,#fff 50%)}
+.bars td .b{height:10px;background:#2f5d46;border-radius:2px;display:inline-block;vertical-align:middle}
+</style></head><body>
+<div class="win"><div class="title"><b>בקרת דיווחי ייצור · בתי צמיחה מי עמי</b><span>נטלי · אחראית תפ&quot;י</span><span class="wbtn"><span></span><span></span><span></span></span></div>
+<div class="body"><div class="side"><div class="on">ייבוא קובץ</div><div class="">הרצת בדיקה</div><div class="">חריגות</div><div class="">חריגות לפי ותק</div><div class="">כמות צפויה</div><div class="">תיק פק&quot;ע</div><div class="">דיווחים מתוקנים</div><div class="">מכשירים ועובדים</div><div class="">ספי חריגה</div></div><div class="main"><h1>ייבוא קובץ פירוט דיווח ייצור</h1><div class="sub">קובץ Excel או CSV שיוצא מ-Priority</div><div class="bar"><div class="f">קובץ<span class="in ">C:\Exports\production-report-2026-11-21.xlsx</span></div><span class="btn sec">עיון…</span><span class="btn">ייבוא</span></div><div class="panel"><h3>סיכום הייבוא · הושלם · 22.11.2026 07:38 · 18 שניות</h3><div class="note" style="margin:0 0 10px">טווח הדיווחים בקובץ: 21.11.2026–21.11.2026</div><div class="cards"><div class="card "><div class="n">1,184</div><div class="l">שורות חדשות</div></div><div class="card amb"><div class="n">37</div><div class="l">שורות שתוקנו (גרסה חדשה)</div></div><div class="card "><div class="n">12</div><div class="l">שורות זהות</div></div><div class="card bad"><div class="n">3</div><div class="l">שורות שנדחו</div></div></div><h3>פירוט השורות שנדחו</h3><table><tr><th>שורה בקובץ</th><th>מזהה דיווח</th><th>סיבת הדחייה</th></tr><tr class=""><td>418</td><td>7781522</td><td>חסר מזהה מכשיר</td></tr><tr class=""><td>902</td><td>—</td><td>חסר מזהה דיווח</td></tr><tr class=""><td>1,077</td><td>7781960</td><td>חסרה כמות תקינים</td></tr></table><div style="margin-top:12px;display:flex;gap:8px"><span class="btn">להרצת בדיקה</span><span class="btn sec">ייבוא קובץ נוסף</span></div></div></div></div>
+<div class="status"><span>נתוני דמה להמחשה בלבד</span><span>מחובר: נטלי · אחראית תפ&quot;י</span></div></div></body></html>
