@@ -141,7 +141,7 @@
         <dc:Bounds x="1794" y="368" width="140" height="64"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ds-1_di" bpmnElement="ds-1">
-        <dc:Bounds x="776" y="294" width="56" height="44"/>
+        <dc:Bounds x="652" y="294" width="56" height="44"/>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ds-1__2_di" bpmnElement="ds-1__2">
         <dc:Bounds x="2048" y="294" width="56" height="44"/>
@@ -191,12 +191,14 @@
         <di:waypoint x="1390" y="354"/>
         <di:waypoint x="1390" y="393"/>
         <di:waypoint x="1423" y="393"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1254" y="347" width="24" height="14"/></bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="sf-8_di" bpmnElement="sf-8">
         <di:waypoint x="1033" y="407"/>
         <di:waypoint x="1132" y="407"/>
         <di:waypoint x="1132" y="400"/>
         <di:waypoint x="1158" y="400"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="1048" y="413" width="70" height="14"/></bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="sf-9_di" bpmnElement="sf-9">
         <di:waypoint x="1298" y="400"/>
@@ -235,6 +237,7 @@
         <di:waypoint x="2450" y="134"/>
         <di:waypoint x="2450" y="173"/>
         <di:waypoint x="2483" y="173"/>
+        <bpmndi:BPMNLabel><dc:Bounds x="2314" y="127" width="24" height="14"/></bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="sf-16_di" bpmnElement="sf-16">
         <di:waypoint x="2358" y="180"/>
@@ -254,11 +257,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="da-0_di" bpmnElement="da-0">
         <di:waypoint x="804" y="160"/>
-        <di:waypoint x="804" y="187"/>
-        <di:waypoint x="718" y="187"/>
-        <di:waypoint x="718" y="278"/>
-        <di:waypoint x="804" y="278"/>
-        <di:waypoint x="804" y="294"/>
+        <di:waypoint x="804" y="190"/>
+        <di:waypoint x="680" y="190"/>
+        <di:waypoint x="680" y="294"/>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="da-1_di" bpmnElement="da-1">
         <di:waypoint x="1871" y="212"/>
